@@ -1773,7 +1773,7 @@ let clusterOf = {};
 function computeClusters(visDocs) {
   const collapsed = new Set(), clusters = []; clusterOf = {};
   if (viewMode !== "mapa") return { collapsed, clusters };
-  const pos = nodePositions(), k = zoomK || 1, R = 34 / k;
+  const pos = nodePositions(), k = zoomK || 1, R = 26 / k;
   const groups = [];
   visDocs.forEach((d) => {
     const p = pos[d.id]; if (!p) return;
