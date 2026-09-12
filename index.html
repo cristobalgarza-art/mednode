@@ -286,15 +286,16 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
 
     <!-- Step 0: correo (enlace mágico, sin contraseñas) -->
     <div class="obStep active" id="ob-email">
-      <p class="tagline">La red profesional de médicos, por invitación. Entra con tu correo: te enviamos un enlace de acceso, sin contraseñas.</p>
+      <p class="tagline">La red profesional de médicos, por invitación.</p>
+      <p class="hint" style="margin:0 0 10px"><b>Paso 1:</b> entra con tu correo (te enviamos un código, sin contraseñas). <b>Paso 2:</b> ya adentro, escribes tu código de invitación MED-…</p>
       <label class="obLabel">Tu correo</label>
       <input id="obLoginEmail" type="email" placeholder="correo@ejemplo.com" autocomplete="email">
       <div class="obMsg" id="obLoginMsg"></div>
       <button class="btn primary" id="btnMagic" style="width:100%;margin-top:6px" onclick="obSendMagic()">Enviarme el enlace de acceso</button>
       <div id="obOtpWrap" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #e5e7eb">
-        <label class="obLabel">O escribe el código de 6 dígitos que viene en el correo</label>
+        <label class="obLabel">Escribe el código que viene en el correo</label>
         <div style="display:flex;gap:8px">
-          <input id="obOtp" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456" style="flex:1;letter-spacing:4px;font-size:18px;text-align:center">
+          <input id="obOtp" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="12345678" style="flex:1;letter-spacing:4px;font-size:18px;text-align:center">
           <button class="btn primary" id="btnOtp" onclick="obVerifyOtp()">Entrar</button>
         </div>
         <div class="obMsg" id="obOtpMsg"></div>
@@ -729,7 +730,8 @@ const DICT = {
   "Explorar con datos de ejemplo →": "Explore with sample data →",
   "← Volver": "← Back",
   "Escribe el código de invitación que te compartieron.": "Enter the invitation code you were given.",
-  "O escribe el código de 6 dígitos que viene en el correo": "Or type the 6-digit code from the email",
+  "Escribe el código que viene en el correo": "Type the code from the email",
+  "La red profesional de médicos, por invitación.": "The invitation-only professional network for physicians.",
   "Código de invitación": "Invitation code",
   "Ej. MED-4F2A9": "e.g. MED-4F2A9",
   "Continuar": "Continue",
@@ -1064,7 +1066,7 @@ async function obSendMagic() {
   const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
   btn.disabled = false;
   if (error) { msg.style.color = "#b03434"; msg.textContent = t("No se pudo enviar: ", "Could not send: ") + error.message; return; }
-  msg.style.color = "#0f6e56"; msg.textContent = t("Listo. Abre tu correo (" + email + ") y toca el enlace de acceso, o escribe aquí abajo el código de 6 dígitos. Usa siempre el correo más reciente: cada envío cancela el anterior.", "Done. Open your email (" + email + ") and tap the access link, or type the 6-digit code below. Always use the most recent email: each new request cancels the previous one.");
+  msg.style.color = "#0f6e56"; msg.textContent = t("Listo. Abre tu correo (" + email + ") y escribe aquí abajo el código que trae (o toca el botón del correo). Usa siempre el correo más reciente: cada envío cancela el anterior.", "Done. Open your email (" + email + ") and type the code below (or tap the button in the email). Always use the most recent email: each new request cancels the previous one.");
   document.getElementById("obOtpWrap").style.display = "block";
   try { document.getElementById("obOtp").focus(); } catch (e) {}
 }
@@ -1072,7 +1074,7 @@ async function obVerifyOtp() {
   const email = document.getElementById("obLoginEmail").value.trim().toLowerCase();
   const token = (document.getElementById("obOtp").value || "").replace(/\D/g, "");
   const msg = document.getElementById("obOtpMsg"), btn = document.getElementById("btnOtp");
-  if (token.length !== 6) { msg.style.color = "#b03434"; msg.textContent = t("El código tiene 6 dígitos.", "The code has 6 digits."); return; }
+  if (token.length < 6 || token.length > 8) { msg.style.color = "#b03434"; msg.textContent = t("Escribe el código numérico completo que viene en el correo.", "Type the full numeric code from the email."); return; }
   btn.disabled = true; msg.style.color = "#0f6e56"; msg.textContent = t("Verificando...", "Verifying...");
   const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
   btn.disabled = false;
@@ -1088,7 +1090,7 @@ async function obVerifyOtp() {
       const m = document.getElementById("obLoginMsg");
       m.style.color = "#b03434";
       m.textContent = /otp_expired|access_denied/.test(code)
-        ? t("Ese enlace ya caducó o fue reemplazado por uno más nuevo. Escribe tu correo y pide otro; abre solo el correo más reciente (o usa su código de 6 dígitos).", "That link has expired or was replaced by a newer one. Enter your email and request another; open only the most recent email (or use its 6-digit code).")
+        ? t("Ese enlace ya caducó o fue reemplazado por uno más nuevo. Escribe tu correo y pide otro; abre solo el correo más reciente (o teclea su código).", "That link has expired or was replaced by a newer one. Enter your email and request another; open only the most recent email (or type its code).")
         : t("No se pudo completar el acceso (" + code + "). Pide un enlace nuevo.", "Sign-in could not be completed (" + code + "). Request a new link.");
       history.replaceState(null, "", location.pathname);
     }
