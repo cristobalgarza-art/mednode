@@ -1670,7 +1670,11 @@ defs.append("marker").attr("id", "arrowR").attr("viewBox", "0 0 10 8").attr("mar
 const nodeShadow = defs.append("filter").attr("id", "nodeShadow").attr("x", "-50%").attr("y", "-50%").attr("width", "200%").attr("height", "200%");
 nodeShadow.append("feDropShadow").attr("dx", 0).attr("dy", 1).attr("stdDeviation", 1.3).attr("flood-color", "#1b1e2b").attr("flood-opacity", 0.30);
 
-const zoom = d3.zoom().scaleExtent([1, 14]).on("zoom", (ev) => { gAll.attr("transform", ev.transform); zoomK = ev.transform.k; applyZoomStyles(); });
+let _clT = null, _clK = 1;
+const zoom = d3.zoom().scaleExtent([1, 14]).on("zoom", (ev) => {
+  gAll.attr("transform", ev.transform); zoomK = ev.transform.k; applyZoomStyles();
+  if (viewMode === "mapa" && Math.abs(zoomK - _clK) > 0.05) { clearTimeout(_clT); _clT = setTimeout(() => { _clK = zoomK; render(); }, 90); }
+});
 svg.call(zoom);
 let _lastNodeUp = 0, _nodeDown = null;
 // Clic en el fondo cierra el panel — salvo que llegue pegado a un clic sobre un nodo (evento fantasma).
@@ -1759,28 +1763,44 @@ function fitToNodes() {
 function degOf(id) { let n = 0; state.conns.forEach((c) => { if (c.from === id || c.to === id) n++; }); return n; }
 function baseR(id) { return viewMode === "red" ? Math.min(8 + degOf(id) * 1.7, 22) : 9; }
 function mapR(id) { return Math.min(3 + degOf(id) * 0.3, 6); }
-function mapScreenR(id) { const base = Math.min(11 + degOf(id) * 1.2, 16); return Math.max(6, base / Math.pow(zoomK || 1, 0.4)); }
+function mapScreenR(id) { return Math.min(11 + degOf(id) * 1.2, 16); }
+function screenR(id) { return viewMode === "mapa" ? mapScreenR(id) : nodeScreenR(id); }
 function zoomStep(f) { svg.transition().duration(280).ease(d3.easeCubicOut).call(zoom.scaleBy, f); }
 function cityKey(d) { return Math.round(d.lat * 4) + "|" + Math.round(d.lng * 4); }
+let clusterOf = {};
+// Agrupa a los médicos que en PANTALLA quedarían encimados (depende del zoom, como en Google Maps):
+// alejado → una burbuja con número por zona; al acercarse se separan solos.
 function computeClusters(visDocs) {
-  const collapsed = new Set(), clusters = [];
+  const collapsed = new Set(), clusters = []; clusterOf = {};
   if (viewMode !== "mapa") return { collapsed, clusters };
-  const byCity = {};
-  visDocs.forEach((d) => { (byCity[cityKey(d)] = byCity[cityKey(d)] || []).push(d); });
-  Object.keys(byCity).forEach((key) => {
-    const arr = byCity[key];
-    if (arr.length > CITY_LIMIT) {
-      arr.forEach((d) => { if (d.id !== selectedId) collapsed.add(d.id); }); // el seleccionado siempre se ve
-      const p0 = arr[0];
-      clusters.push({ id: "cl_" + key, ciudad: p0.ciudad, estado: p0.estado, pais: p0.pais, lat: p0.lat, lng: p0.lng, members: arr.map((d) => d.id), count: arr.length });
-    }
+  const pos = nodePositions(), k = zoomK || 1, R = 34 / k;
+  const groups = [];
+  visDocs.forEach((d) => {
+    const p = pos[d.id]; if (!p) return;
+    let g = null;
+    for (const q of groups) { if (Math.hypot(q.x - p[0], q.y - p[1]) < R) { g = q; break; } }
+    if (g) { const n = g.members.length; g.x = (g.x * n + p[0]) / (n + 1); g.y = (g.y * n + p[1]) / (n + 1); g.members.push(d); }
+    else groups.push({ x: p[0], y: p[1], members: [d] });
+  });
+  groups.forEach((g, gi) => {
+    const members = g.members.filter((d) => d.id !== selectedId); // el seleccionado siempre se ve suelto
+    if (members.length < 2) return;
+    const cities = {};
+    members.forEach((d) => { const c = d.ciudad || "?"; cities[c] = (cities[c] || 0) + 1; });
+    const names = Object.keys(cities).sort((a, b) => cities[b] - cities[a]);
+    const p0 = members.find((d) => d.ciudad === names[0]) || members[0];
+    const id = "cl_" + gi + "_" + members.map((d) => d.id.slice(0, 4)).join("");
+    members.forEach((d) => { collapsed.add(d.id); clusterOf[d.id] = id; });
+    clusters.push({ id, ciudad: names.length > 1 ? names[0] + " +" + (names.length - 1) : names[0], ciudadReal: p0.ciudad, nCiudades: names.length, estado: names.length > 1 ? "" : p0.estado, pais: p0.pais, x: g.x, y: g.y, members: members.map((d) => d.id), count: members.length });
   });
   return { collapsed, clusters };
 }
 function openCityList(c) {
   selectedId = null; profileFilter = "todas";
   const rows = c.members.map((id) => { const d = byId(id); if (!d) return ""; return "<div class=\"connItem\" style=\"cursor:pointer;border-color:" + espColor(d.esp) + "\" onclick=\"openProfile('" + id + "')\"><b>" + esc(d.nombre) + "</b><small>" + esc(espT(d.esp)) + (d.sub ? " · " + esc(espT(d.sub)) : "") + "</small></div>"; }).join("");
-  document.getElementById("panelBody").innerHTML = "<h3 style=\"margin:0 0 2px\">" + esc(c.ciudad) + (c.estado ? ", " + esc(c.estado) : "") + "</h3><div class=\"sub\">" + c.count + t(" médicos en esta ciudad · elige uno", " physicians in this city · pick one") + "</div><hr>" + rows;
+  const titulo = c.nCiudades > 1 ? t("Médicos en esta zona", "Physicians in this area") : esc(c.ciudadReal || c.ciudad) + (c.estado ? ", " + esc(c.estado) : "");
+  const rows2 = c.nCiudades > 1 ? c.members.map((id) => { const d = byId(id); if (!d) return ""; return "<div class=\"connItem\" style=\"cursor:pointer;border-color:" + espColor(d.esp) + "\" onclick=\"openProfile('" + id + "')\"><b>" + esc(d.nombre) + "</b><small>" + esc(espT(d.esp)) + " · " + esc(d.ciudad || "") + "</small></div>"; }).join("") : rows;
+  document.getElementById("panelBody").innerHTML = "<h3 style=\"margin:0 0 2px\">" + titulo + "</h3><div class=\"sub\">" + c.count + t(" médicos · elige uno o acerca el mapa para separarlos", " physicians · pick one or zoom in to separate them") + "</div><hr>" + rows2;
   document.getElementById("panel").style.display = "block";
   applyFocus();
 }
@@ -1880,7 +1900,7 @@ function render() {
   const visDocs = visibleDoctors();
   const visSet = new Set(visDocs.map((d) => d.id));
   const cl = computeClusters(visDocs); collapsedDocs = cl.collapsed; cityClusters = cl.clusters;
-  const conns = visibleConns(visSet).filter((c) => !(collapsedDocs.has(c.from) && collapsedDocs.has(c.to) && cityKey(byId(c.from)) === cityKey(byId(c.to))));
+  const conns = visibleConns(visSet).filter((c) => !(collapsedDocs.has(c.from) && collapsedDocs.has(c.to) && clusterOf[c.from] === clusterOf[c.to]));
   const pos = getPositions();
   pairIdx = {};
   const pairGroups = {};
@@ -1934,11 +1954,11 @@ function render() {
     g.append("text").attr("class", "clbl").attr("text-anchor", "middle").attr("fill", "#2a2f36").style("paint-order", "stroke").style("stroke", "#fff").style("stroke-width", "2.5px").style("pointer-events", "none");
     return g;
   });
-  clu.attr("transform", (c) => { const p = proj([c.lng, c.lat]); return p ? "translate(" + p[0] + "," + p[1] + ")" : "translate(-100,-100)"; })
+  clu.attr("transform", (c) => "translate(" + c.x + "," + c.y + ")")
     .on("pointerdown", (ev) => { _nodeDown = [ev.clientX, ev.clientY]; })
     .on("pointerup", (ev, c) => { const ok = _nodeDown && Math.hypot(ev.clientX - _nodeDown[0], ev.clientY - _nodeDown[1]) < 6; _nodeDown = null; if (!ok) return; ev.stopPropagation(); _lastNodeUp = Date.now(); openCityList(c); })
     .on("click", (ev) => { ev.stopPropagation(); })
-    .on("mousemove", (ev, c) => showTip(ev, "<b>" + esc(c.ciudad) + "</b><br>" + c.count + t(" médicos · clic para ver la lista", " physicians · click to see the list")))
+    .on("mousemove", (ev, c) => showTip(ev, "<b>" + (c.nCiudades > 1 ? esc(c.ciudadReal) + t(" y otras ciudades", " and other cities") : esc(c.ciudad)) + "</b><br>" + c.count + t(" médicos · clic para ver la lista · acerca para separarlos", " physicians · click for the list · zoom in to separate")))
     .on("mouseleave", hideTip);
   clu.select("text.cnum").text((c) => c.count);
   clu.select("text.clbl").text((c) => c.ciudad);
@@ -1973,7 +1993,7 @@ function applyZoomStyles() {
       return arcD(p1, p2, rF + 2 / k, rT + (TIPOS[c.tipo].directed ? wS * 2.5 : 2) / k, bend);
     });
   applyLinkFade(pos);
-  const cScreen = (c) => Math.max(9, Math.min(14 + c.count * 0.12, 22) / Math.pow(k, 0.4));
+  const cScreen = (c) => Math.min(14 + c.count * 0.35, 22);
   gClusters.selectAll("g.cluster").select("circle.cdot").attr("r", (c) => cScreen(c) / k).attr("stroke-width", 1.6 / k);
   gClusters.selectAll("text.cnum").style("font-size", (c) => cScreen(c) * 0.75 / k + "px").attr("dy", (c) => cScreen(c) * 0.32 / k);
   gClusters.selectAll("text.clbl").style("font-size", fsS / k + "px").style("stroke-width", fsS * 0.25 / k + "px").attr("dy", (c) => cScreen(c) / k + (4 + fsS * 0.85) / k);
@@ -1998,7 +2018,8 @@ function labelPass(pos) {
   const nodes = [];
   gNodes.selectAll("g.node").each(function (d) { nodes.push({ d: d, el: this }); });
   const obstacles = [];
-  nodes.forEach((n) => { const p = pos[n.d.id]; if (!p) return; const rs = nodeScreenR(n.d.id) + 1; obstacles.push({ x1: p[0] * k - rs, y1: p[1] * k - rs, x2: p[0] * k + rs, y2: p[1] * k + rs }); });
+  nodes.forEach((n) => { const p = pos[n.d.id]; if (!p || collapsedDocs.has(n.d.id)) return; const rs = screenR(n.d.id) + 1; obstacles.push({ x1: p[0] * k - rs, y1: p[1] * k - rs, x2: p[0] * k + rs, y2: p[1] * k + rs }); });
+  cityClusters.forEach((c) => { const rs = Math.min(14 + c.count * 0.35, 22) + 2, w = (c.ciudad || "").length * fsS * 0.62 + 6; obstacles.push({ x1: c.x * k - Math.max(rs, w / 2), y1: c.y * k - rs, x2: c.x * k + Math.max(rs, w / 2), y2: c.y * k + rs + 4 + fsS * 1.3 }); });
   nodes.sort((a, b) => {
     const pa = (a.d.id === selectedId ? 2 : 0) + (a.d.id === hoveredId ? 1 : 0);
     const pb = (b.d.id === selectedId ? 2 : 0) + (b.d.id === hoveredId ? 1 : 0);
@@ -2010,8 +2031,9 @@ function labelPass(pos) {
     const p = pos[n.d.id];
     const lbl = d3.select(n.el).select("text.lbl");
     if (!p) { lbl.style("display", "none"); return; }
+    if (collapsedDocs.has(n.d.id)) { lbl.style("display", "none"); return; }
     const w = shortName(n.d.nombre).length * fsS * 0.62 + 6, h = fsS * 1.3;
-    const rs = nodeScreenR(n.d.id);
+    const rs = screenR(n.d.id);
     const cx = p[0] * k, top = p[1] * k + rs + 3;
     const box = { x1: cx - w / 2, y1: top, x2: cx + w / 2, y2: top + h };
     if (n.d.id === selectedId || n.d.id === hoveredId) { lbl.style("display", null); placed.push(box); return; }
