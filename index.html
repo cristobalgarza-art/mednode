@@ -327,6 +327,9 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
         <select id="obRel">
           <option value="maestro_in">Es mi maestro (me formó)</option>
           <option value="alumno_in">Es mi alumno (yo lo formé)</option>
+          <option value="rmayor_in">Fue mi residente mayor (R+, iba adelante de mí)</option>
+          <option value="rmenor_in">Fue mi residente menor (R−, iba atrás de mí)</option>
+          <option value="coresidente">Fue mi compañero de residencia (misma generación)</option>
           <option value="cirugia">Operamos juntos</option>
           <option value="rotacion">Rotamos juntos</option>
           <option value="amistad" selected>Colega / amistad</option>
@@ -587,6 +590,9 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
       <select id="cRel">
         <option value="maestro_mio">Fue mi maestro (me formó)</option>
         <option value="alumno_mio">Fue mi alumno (yo lo formé)</option>
+        <option value="rmayor_mio">Fue mi residente mayor (R+, iba adelante de mí)</option>
+        <option value="rmenor_mio">Fue mi residente menor (R−, iba atrás de mí)</option>
+        <option value="coresidente">Fue mi compañero de residencia (misma generación)</option>
         <option value="cirugia">Operó conmigo</option>
         <option value="rotacion">Rotó conmigo</option>
         <option value="me_avalo">Me avaló / recomendó</option>
@@ -689,6 +695,8 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
 const TIPOS = {
   maestro:  { label: "Maestro → alumno", color: "#7F77DD", directed: true },
   aval:     { label: "Recomendó / avaló", color: "#B8860B", directed: true },
+  residencia:  { label: "Residente mayor → menor", color: "#2A7FBF", directed: true },
+  coresidente: { label: "Compañeros de residencia", color: "#0FA3B1" },
   rotacion: { label: "Rotaron juntos",   color: "#1D9E75" },
   cirugia:  { label: "Operaron juntos",  color: "#D85A30" },
   amistad:  { label: "Colega / amistad", color: "#D4537E" },
@@ -721,6 +729,16 @@ const DICT = {
   "Es mi maestro (me formó)": "My mentor (trained me)",
   "Es mi alumno (yo lo formé)": "My trainee (I trained them)",
   "Operamos juntos": "We operated together",
+  "Fue mi residente mayor (R+, iba adelante de mí)": "Was my senior resident (a year or more ahead of me)",
+  "Fue mi residente menor (R−, iba atrás de mí)": "Was my junior resident (a year or more behind me)",
+  "Fue mi compañero de residencia (misma generación)": "Was my co-resident (same class)",
+  "Residente mayor → menor": "Senior → junior resident",
+  "Compañeros de residencia": "Co-residents",
+  "Sus residentes mayores": "Senior residents",
+  "Sus residentes menores": "Junior residents",
+  "Su residente mayor:": "Senior resident:",
+  "Su residente menor:": "Junior resident:",
+  "Compañero de residencia:": "Co-resident:",
   "Rotamos juntos": "We rotated together",
   "Colega / amistad": "Colleague / friend",
   "Solo nos conocemos": "We just know each other",
@@ -1170,7 +1188,7 @@ async function connectSuggestion(id) {
   const o = byId(id); if (!o) return;
   if (state.conns.some((c) => (c.from === me && c.to === id) || (c.from === id && c.to === me))) { alert(t("Ya existe una conexión o solicitud con este médico.", "A connection or request with this physician already exists.")); return; }
   const estado = o.registrado === false ? "confirmada" : "pendiente"; // no registrado: confirmará al reclamar su perfil
-  if (!(await cloudInsertConn(me, id, "amistad", "Misma generación de formación", estado))) return;
+  if (!(await cloudInsertConn(me, id, "coresidente", "Misma generación de formación", estado))) return;
   alert(estado === "pendiente" ? t("Solicitud enviada. Se volverá conexión cuando el otro médico la confirme.", "Request sent. It will become a connection once the other physician confirms it.") : t("Conexión registrada. Cuando ese médico reclame su perfil, la confirmará.", "Connection recorded. When that physician claims their profile, they will confirm it."));
 }
 function renderSugerencias() {
@@ -1354,6 +1372,8 @@ function renderMyProfile() {
   const relDesc = (c) => {
     if (c.tipo === "maestro") return c.to === d.id ? t("es tu maestro (te formó)", "is your mentor (trained you)") : t("es tu alumno (lo formaste)", "is your trainee (you trained them)");
     if (c.tipo === "aval") return c.to === d.id ? t("te avaló / recomendó", "recommended you") : t("lo avalaste", "was recommended by you");
+    if (c.tipo === "residencia") return c.to === d.id ? t("fue tu residente mayor (R+)", "was your senior resident") : t("fue tu residente menor (R−)", "was your junior resident");
+    if (c.tipo === "coresidente") return t("fue tu compañero de residencia", "was your co-resident");
     if (c.tipo === "cirugia") return t("operó contigo", "operated with you");
     if (c.tipo === "rotacion") return t("rotó contigo", "rotated with you");
     if (c.tipo === "amistad") return t("es tu colega", "is your colleague");
@@ -1644,6 +1664,9 @@ defs.append("marker").attr("id", "arrowM").attr("viewBox", "0 0 10 8").attr("mar
 defs.append("marker").attr("id", "arrowA").attr("viewBox", "0 0 10 8").attr("markerWidth", 7).attr("markerHeight", 6)
   .attr("refX", 8).attr("refY", 4).attr("orient", "auto")
   .append("path").attr("d", "M0,0 L10,4 L0,8 Z").attr("fill", TIPOS.aval.color);
+defs.append("marker").attr("id", "arrowR").attr("viewBox", "0 0 10 8").attr("markerWidth", 7).attr("markerHeight", 6)
+  .attr("refX", 8).attr("refY", 4).attr("orient", "auto")
+  .append("path").attr("d", "M0,0 L10,4 L0,8 Z").attr("fill", TIPOS.residencia.color);
 const nodeShadow = defs.append("filter").attr("id", "nodeShadow").attr("x", "-50%").attr("y", "-50%").attr("width", "200%").attr("height", "200%");
 nodeShadow.append("feDropShadow").attr("dx", 0).attr("dy", 1).attr("stdDeviation", 1.3).attr("flood-color", "#1b1e2b").attr("flood-opacity", 0.30);
 
@@ -1868,7 +1891,7 @@ function render() {
     .attr("class", "link").attr("fill", "none")
     .attr("stroke", (c) => c.estado === "pendiente" ? "#9aa0ad" : TIPOS[c.tipo].color)
     .attr("stroke-dasharray", (c) => (c.estado === "pendiente" || TIPOS[c.tipo].dash) ? "5 4" : null)
-    .attr("marker-end", (c) => (c.estado !== "pendiente" && TIPOS[c.tipo].directed) ? (c.tipo === "aval" ? "url(#arrowA)" : "url(#arrowM)") : null)
+    .attr("marker-end", (c) => (c.estado !== "pendiente" && TIPOS[c.tipo].directed) ? (c.tipo === "aval" ? "url(#arrowA)" : c.tipo === "residencia" ? "url(#arrowR)" : "url(#arrowM)") : null)
     .attr("opacity", 0.8).style("cursor", "pointer")
     .on("mousemove", (ev, c) => { const f = byId(c.from), tt = byId(c.to); showTip(ev, "<b>" + tr(TIPOS[c.tipo].label) + (c.estado === "pendiente" ? t(" · pendiente", " · pending") : "") + "</b><br>" + esc(f ? f.nombre : "?") + " ↔ " + esc(tt ? tt.nombre : "?") + (c.detalle ? "<br><i>" + esc(c.detalle) + "</i>" : "")); })
     .on("mouseleave", hideTip);
@@ -2013,6 +2036,8 @@ function connMatches(c, id, f) {
   if (f === "todas") return true;
   if (f === "maestros") return c.tipo === "maestro" && c.to === id;
   if (f === "alumnos") return c.tipo === "maestro" && c.from === id;
+  if (f === "rmayores") return c.tipo === "residencia" && c.to === id;
+  if (f === "rmenores") return c.tipo === "residencia" && c.from === id;
   return c.tipo === f;
 }
 function applyFocus() {
@@ -2123,7 +2148,7 @@ function openProfile(id) {
   const d = byId(id);
   if (!d) return;
   const rel = state.conns.filter((c) => c.from === id || c.to === id);
-  const cats = [["todas", "Todas"], ["maestros", "Sus maestros"], ["alumnos", "Sus alumnos"], ["aval", "Avales"], ["rotacion", "Rotaron juntos"], ["cirugia", "Operaron juntos"], ["amistad", "Amistad"], ["conocido", "Se conocen"]];
+  const cats = [["todas", "Todas"], ["maestros", "Sus maestros"], ["alumnos", "Sus alumnos"], ["rmayores", "Sus residentes mayores"], ["rmenores", "Sus residentes menores"], ["coresidente", "Compañeros de residencia"], ["aval", "Avales"], ["rotacion", "Rotaron juntos"], ["cirugia", "Operaron juntos"], ["amistad", "Amistad"], ["conocido", "Se conocen"]];
   const chips = cats.map(([f, lab]) => {
     const n = f === "todas" ? rel.length : rel.filter((c) => connMatches(c, id, f)).length;
     if (n === 0 && f !== "todas") return "";
@@ -2135,6 +2160,8 @@ function openProfile(id) {
     let label = TIPOS[c.tipo].label;
     if (c.tipo === "maestro") label = c.from === id ? "Su alumno:" : "Su maestro:";
     else if (c.tipo === "aval") label = c.from === id ? "Recomendó a:" : "Avalado por:";
+    else if (c.tipo === "residencia") label = c.from === id ? "Su residente menor:" : "Su residente mayor:";
+    else if (c.tipo === "coresidente") label = "Compañero de residencia:";
     label = tr(label);
     return "<div class=\"connItem\" style=\"border-color:" + TIPOS[c.tipo].color + "\"><b>" + label + "</b> " + (other ? esc(other.nombre) : "?") + (c.detalle ? "<small>" + esc(c.detalle) + "</small>" : "") + (canDelConn(c) ? "<span class=\"del\" onclick=\"delConn('" + c.id + "')\">eliminar</span>" : "") + "</div>";
   }).join("") || "<p class=\"row\" style=\"color:#8a919c\">Sin conexiones de este tipo.</p>";
@@ -2210,6 +2237,8 @@ function showRuta(id) {
         let rel = tr(TIPOS[c.tipo].label);
         if (c.tipo === "maestro") rel = (c.from === cur) ? t("formó a", "trained") : t("fue formado por", "was trained by");
         else if (c.tipo === "aval") rel = (c.from === cur) ? t("avaló a", "recommended") : t("fue avalado por", "was recommended by");
+        else if (c.tipo === "residencia") rel = (c.from === cur) ? t("fue residente mayor de", "was senior resident to") : t("fue residente menor de", "was junior resident to");
+        else if (c.tipo === "coresidente") rel = t("fue compañero de residencia de", "was co-resident with");
         else if (c.tipo === "cirugia") rel = t("operó con", "operated with");
         else if (c.tipo === "rotacion") rel = t("rotó con", "rotated with");
         else if (c.tipo === "amistad") rel = t("es colega de", "is a colleague of");
@@ -2362,6 +2391,9 @@ function openConnDlg(fromId) {
     ["maestro_rev", "B es maestro de A (B formó a A)"],
     ["aval", "A avaló / recomendó a B"],
     ["aval_rev", "B avaló / recomendó a A"],
+    ["residencia", "A fue residente mayor de B"],
+    ["residencia_rev", "B fue residente mayor de A"],
+    ["coresidente", TIPOS.coresidente.label],
     ["rotacion", TIPOS.rotacion.label],
     ["cirugia", TIPOS.cirugia.label],
     ["amistad", TIPOS.amistad.label],
@@ -2386,6 +2418,9 @@ function updateConnHint() {
     const map = en ? {
       maestro_mio: on + " was your mentor (trained you). The arrow will go from " + on + " to you.",
       alumno_mio: on + " was your trainee (you trained them). The arrow will go from you to " + on + ".",
+      rmayor_mio: on + " was your senior resident (ahead of you in the program).",
+      rmenor_mio: on + " was your junior resident (behind you in the program).",
+      coresidente: "You and " + on + " were co-residents (same class).",
       cirugia: "You and " + on + " operated together.",
       rotacion: "You and " + on + " rotated together.",
       me_avalo: on + " recommended you.",
@@ -2395,6 +2430,9 @@ function updateConnHint() {
     } : {
       maestro_mio: on + " fue tu maestro (te formó). La flecha irá de " + on + " hacia ti.",
       alumno_mio: on + " fue tu alumno (lo formaste). La flecha irá de ti hacia " + on + ".",
+      rmayor_mio: on + " fue tu residente mayor (iba adelante de ti en la residencia).",
+      rmenor_mio: on + " fue tu residente menor (iba atrás de ti en la residencia).",
+      coresidente: "Tú y " + on + " fueron compañeros de residencia (misma generación).",
       cirugia: "Tú y " + on + " operaron juntos.",
       rotacion: "Tú y " + on + " rotaron juntos.",
       me_avalo: on + " te avaló / recomendó.",
@@ -2411,6 +2449,8 @@ function updateConnHint() {
   let lf = tr("Médico A"), lt = tr("Médico B"), hint = "";
   if (tp === "maestro") { lf = t("Maestro (A)", "Mentor (A)"); lt = t("Alumno (B)", "Trainee (B)"); hint = t(an + " formó a " + bn + ". La flecha irá de " + an + " hacia " + bn + ".", an + " trained " + bn + ". The arrow will go from " + an + " to " + bn + "."); }
   else if (tp === "maestro_rev") { lf = t("Alumno (A)", "Trainee (A)"); lt = t("Maestro (B)", "Mentor (B)"); hint = t(bn + " formó a " + an + " — fue su maestro. La flecha irá de " + bn + " hacia " + an + ".", bn + " trained " + an + " — was their mentor. The arrow will go from " + bn + " to " + an + "."); }
+  else if (tp === "residencia") { lf = t("Residente mayor (A)", "Senior resident (A)"); lt = t("Residente menor (B)", "Junior resident (B)"); hint = t(an + " fue residente mayor de " + bn + ".", an + " was senior resident to " + bn + "."); }
+  else if (tp === "residencia_rev") { lf = t("Residente menor (A)", "Junior resident (A)"); lt = t("Residente mayor (B)", "Senior resident (B)"); hint = t(bn + " fue residente mayor de " + an + ".", bn + " was senior resident to " + an + "."); }
   else if (tp === "aval") { lf = t("Quien recomendó (A)", "Recommender (A)"); lt = t("Recomendado (B)", "Recommended (B)"); hint = t(an + " avaló / recomendó a " + bn + ".", an + " recommended " + bn + "."); }
   else if (tp === "aval_rev") { lf = t("Recomendado (A)", "Recommended (A)"); lt = t("Quien recomendó (B)", "Recommender (B)"); hint = t(bn + " avaló / recomendó a " + an + ".", bn + " recommended " + an + "."); }
   else { hint = an + t(" y ", " and ") + bn + ": " + (TIPOS[tp] ? tr(TIPOS[tp].label).toLowerCase() : "") + "."; }
@@ -2431,6 +2471,8 @@ document.getElementById("formConn").addEventListener("submit", async (ev) => {
     if (!me || !o) { alert(t("Elige a un médico.", "Choose a physician.")); return; }
     if (r === "maestro_mio") { tipo = "maestro"; from = o; to = me; }
     else if (r === "alumno_mio") { tipo = "maestro"; from = me; to = o; }
+    else if (r === "rmayor_mio") { tipo = "residencia"; from = o; to = me; }
+    else if (r === "rmenor_mio") { tipo = "residencia"; from = me; to = o; }
     else if (r === "me_avalo") { tipo = "aval"; from = o; to = me; }
     else if (r === "yo_avale") { tipo = "aval"; from = me; to = o; }
     else { tipo = r; from = me; to = o; }
