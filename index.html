@@ -2597,7 +2597,15 @@ async function startCloud() {
   authUser = data && data.session ? data.session.user : null;
   if (!authUser) return;
   let tiene = false;
-  try { tiene = await cloudLoad(); } catch (e) { sbErr(e); return; }
+  // Justo después del enlace mágico el servidor puede rechazar el pase por 1-2 s de desfase de reloj ("JWT issued at future"): reintentar en silencio.
+  for (let intento = 0; ; intento++) {
+    try { tiene = await cloudLoad(); break; }
+    catch (e) {
+      const transitorio = /issued at future|jwt|token/i.test((e && e.message) || "");
+      if (transitorio && intento < 4) { await new Promise((r) => setTimeout(r, 2000)); continue; }
+      sbErr(e); return;
+    }
+  }
   if (tiene) { onboard.classList.remove("show"); boot(); }
   else { document.getElementById("obChooseLead").textContent = t("Entraste como " + authUser.email + ". Ahora crea tu perfil de médico.", "Signed in as " + authUser.email + ". Now create your physician profile."); obShow("ob-choose"); }
 }
