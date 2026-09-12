@@ -291,6 +291,14 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
       <input id="obLoginEmail" type="email" placeholder="correo@ejemplo.com" autocomplete="email">
       <div class="obMsg" id="obLoginMsg"></div>
       <button class="btn primary" id="btnMagic" style="width:100%;margin-top:6px" onclick="obSendMagic()">Enviarme el enlace de acceso</button>
+      <div id="obOtpWrap" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #e5e7eb">
+        <label class="obLabel">O escribe el código de 6 dígitos que viene en el correo</label>
+        <div style="display:flex;gap:8px">
+          <input id="obOtp" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456" style="flex:1;letter-spacing:4px;font-size:18px;text-align:center">
+          <button class="btn primary" id="btnOtp" onclick="obVerifyOtp()">Entrar</button>
+        </div>
+        <div class="obMsg" id="obOtpMsg"></div>
+      </div>
       <p class="hint" style="margin-top:14px">Si ya eres miembro, entrarás directo. Si es tu primera vez, después del enlace podrás usar tu código de invitación.</p>
     </div>
 
@@ -721,6 +729,7 @@ const DICT = {
   "Explorar con datos de ejemplo →": "Explore with sample data →",
   "← Volver": "← Back",
   "Escribe el código de invitación que te compartieron.": "Enter the invitation code you were given.",
+  "O escribe el código de 6 dígitos que viene en el correo": "Or type the 6-digit code from the email",
   "Código de invitación": "Invitation code",
   "Ej. MED-4F2A9": "e.g. MED-4F2A9",
   "Continuar": "Continue",
@@ -1055,8 +1064,37 @@ async function obSendMagic() {
   const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
   btn.disabled = false;
   if (error) { msg.style.color = "#b03434"; msg.textContent = t("No se pudo enviar: ", "Could not send: ") + error.message; return; }
-  msg.style.color = "#0f6e56"; msg.textContent = t("Listo. Abre tu correo (" + email + ") y toca el enlace de acceso. Puedes cerrar esta pestaña.", "Done. Open your email (" + email + ") and tap the access link. You can close this tab.");
+  msg.style.color = "#0f6e56"; msg.textContent = t("Listo. Abre tu correo (" + email + ") y toca el enlace de acceso, o escribe aquí abajo el código de 6 dígitos. Usa siempre el correo más reciente: cada envío cancela el anterior.", "Done. Open your email (" + email + ") and tap the access link, or type the 6-digit code below. Always use the most recent email: each new request cancels the previous one.");
+  document.getElementById("obOtpWrap").style.display = "block";
+  try { document.getElementById("obOtp").focus(); } catch (e) {}
 }
+async function obVerifyOtp() {
+  const email = document.getElementById("obLoginEmail").value.trim().toLowerCase();
+  const token = (document.getElementById("obOtp").value || "").replace(/\D/g, "");
+  const msg = document.getElementById("obOtpMsg"), btn = document.getElementById("btnOtp");
+  if (token.length !== 6) { msg.style.color = "#b03434"; msg.textContent = t("El código tiene 6 dígitos.", "The code has 6 digits."); return; }
+  btn.disabled = true; msg.style.color = "#0f6e56"; msg.textContent = t("Verificando...", "Verifying...");
+  const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+  btn.disabled = false;
+  if (error) { msg.style.color = "#b03434"; msg.textContent = t("Código incorrecto o caducado. Pide un enlace nuevo y usa el código del correo más reciente.", "Wrong or expired code. Request a new link and use the code from the most recent email."); return; }
+  msg.textContent = t("Entrando...", "Signing in...");
+}
+// Si el enlace del correo ya caducó, Supabase regresa aquí con #error=... : explicarlo en vez de mostrar la pantalla vacía.
+(function () {
+  try {
+    const hp = new URLSearchParams((location.hash || "").replace(/^#/, ""));
+    if (hp.get("error")) {
+      const code = hp.get("error_code") || "";
+      const m = document.getElementById("obLoginMsg");
+      m.style.color = "#b03434";
+      m.textContent = /otp_expired|access_denied/.test(code)
+        ? t("Ese enlace ya caducó o fue reemplazado por uno más nuevo. Escribe tu correo y pide otro; abre solo el correo más reciente (o usa su código de 6 dígitos).", "That link has expired or was replaced by a newer one. Enter your email and request another; open only the most recent email (or use its 6-digit code).")
+        : t("No se pudo completar el acceso (" + code + "). Pide un enlace nuevo.", "Sign-in could not be completed (" + code + "). Request a new link.");
+      history.replaceState(null, "", location.pathname);
+    }
+  } catch (e) {}
+})();
+try { document.getElementById("obOtp").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); obVerifyOtp(); } }); } catch (e) {}
 function obGoFounderGuard() { return true; }
 // Centro aproximado [lng, lat] por país, como respaldo cuando no se encuentra la ciudad
 const PAIS_CENTRO = { "méxico": [-102.5, 23.6], "mexico": [-102.5, 23.6], "estados unidos": [-98.5, 39.8], "usa": [-98.5, 39.8], "españa": [-3.7, 40.4], "spain": [-3.7, 40.4], "argentina": [-64, -34.6], "brasil": [-51.9, -14.2], "brazil": [-51.9, -14.2], "colombia": [-74.1, 4.7], "chile": [-70.7, -33.4], "perú": [-77, -12], "peru": [-77, -12], "guatemala": [-90.5, 14.6], "costa rica": [-84.1, 9.9], "panamá": [-79.5, 9], "panama": [-79.5, 9], "ecuador": [-78.5, -0.2], "venezuela": [-66.9, 10.5], "uruguay": [-56.2, -34.9], "canadá": [-79.4, 43.7], "canada": [-79.4, 43.7], "francia": [2.3, 48.9], "france": [2.3, 48.9], "alemania": [13.4, 52.5], "germany": [13.4, 52.5], "italia": [12.5, 41.9], "italy": [12.5, 41.9], "reino unido": [-0.1, 51.5], "united kingdom": [-0.1, 51.5], "portugal": [-9.1, 38.7] };
