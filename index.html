@@ -259,6 +259,9 @@
     .demoLink a { display:inline-block; padding:10px; }
     header .btn.primary { padding:7px 10px; font-size:13px; }
     .soloEscritorio { display:none; }
+    #btnReporte { width:42px; height:42px; padding:0; border-radius:50%; font-size:18px; display:flex; align-items:center; justify-content:center; right:10px; bottom:10px; }
+    #status { max-width:calc(100% - 70px); }
+    #pwaBanner { bottom:62px; }
     header h1 .betaTag { display:none; }
     header { flex-wrap:nowrap; }
     #langBtn { padding:5px 8px; }
@@ -630,7 +633,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
     </div>
   </div>
 </div>
-<button id="btnReporte" onclick="reportarProblema()" style="display:none">🛠 Reportar un problema</button>
+<button id="btnReporte" onclick="reportarProblema()" style="display:none" title="Reportar un problema">🛠<span class="soloEscritorio"> Reportar un problema</span></button>
 <dialog id="dlgMenu">
   <h3>Mi cuenta</h3>
   <p class="dlgsub" id="menuWho"></p>
