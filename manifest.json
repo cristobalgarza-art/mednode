@@ -1,0 +1,16 @@
+{
+  "name": "MEDNODE — Red profesional médica",
+  "short_name": "MEDNODE",
+  "description": "La red profesional de médicos por invitación. Genealogía médica: quién formó a quién.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#5b50c7",
+  "theme_color": "#5b50c7",
+  "lang": "es",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -2,8 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MEDNODE — Red profesional médica</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#5b50c7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MEDNODE">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='6' cy='18' r='4' fill='%235b50c7'/><circle cx='18' cy='6' r='4' fill='%231D9E75'/><circle cx='18' cy='18' r='3' fill='%23D85A30'/></svg>">
 <meta name="theme-color" content="#5b50c7">
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
@@ -13,15 +21,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; }
-  body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background: #f3f4f7; color: #1f2328; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background: #f3f4f7; color: #1f2328; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
   /* Header */
   header { display: flex; align-items: center; gap: 12px; padding: 11px 18px; background: #fff; border-bottom: 1px solid #e7e9ef; box-shadow: 0 1px 2px rgba(15,18,35,0.03); flex-wrap: wrap; }
   header h1 { font-size: 17px; font-weight: 700; letter-spacing: 1.5px; color: #232634; display: flex; align-items: center; gap: 7px; }
   header h1 span { color: #5b50c7; }
+  header h1 .betaTag { color: #8a6d00; background: #fff3c4; border: 1px solid #f1d879; border-radius: 999px; font-size: 10px; letter-spacing: 1px; padding: 1px 7px; margin-left: 4px; font-weight: 600; text-transform: uppercase; }
+  #btnReporte { position: fixed; right: 12px; bottom: 12px; z-index: 60; background: #fff; border: 1px solid #e7e9ef; border-radius: 999px; padding: 8px 12px; font-size: 12.5px; color: #3a3f4d; box-shadow: 0 4px 14px rgba(15,18,35,0.12); cursor: pointer; font-family: inherit; }
   .grow { flex: 1; }
   .btn { padding: 7px 14px; border: 1px solid #d8dce4; border-radius: 999px; background: #fff; font-size: 13px; font-weight: 500; color: #3a3f4d; cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s; }
-  .btn:hover { border-color: #b9bfcc; background: #f6f7fa; }
+  @media (hover:hover) { .btn:hover { border-color: #b9bfcc; background: #f6f7fa; } }
   .btn.primary { background: #5b50c7; border-color: #5b50c7; color: #fff; }
   .btn.primary:hover { background: #4a40ad; border-color: #4a40ad; }
   .btn.danger { color: #b03434; border-color: #ecc8c8; }
@@ -53,7 +63,7 @@
   .toolbar input.search { flex: 1; min-width: 200px; }
   .cardGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 14px; }
   .docCard { background: #fff; border: 1px solid #e7e9ef; border-radius: 14px; padding: 16px; cursor: pointer; transition: box-shadow .15s, transform .1s; }
-  .docCard:hover { box-shadow: 0 8px 24px rgba(15,18,35,0.08); transform: translateY(-1px); }
+  @media (hover:hover) { .docCard:hover { box-shadow: 0 8px 24px rgba(15,18,35,0.08); transform: translateY(-1px); } }
   .docCard .top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
   .docCard .nm { font-weight: 600; font-size: 15px; line-height: 1.2; }
   .docCard .esp { font-size: 12.5px; color: #5b50c7; font-weight: 500; }
@@ -155,7 +165,7 @@
   ul.linaje li { font-size:13px; margin:5px 0; }
 
   /* Dialogs */
-  dialog { border: none; border-radius: 18px; padding: 22px; width: 400px; max-width: 92vw; box-shadow: 0 18px 50px rgba(15,18,35,0.3); }
+  dialog { border: none; border-radius: 18px; padding: 22px; width: 400px; max-width: 92vw; max-height: 90vh; max-height: 90dvh; overflow-y: auto; box-shadow: 0 18px 50px rgba(15,18,35,0.3); }
   dialog::backdrop { background: rgba(22,24,38,0.5); }
   dialog h3 { font-size: 17px; margin-bottom: 4px; }
   dialog p.dlgsub { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
@@ -172,14 +182,14 @@
   /* Onboarding overlay */
   #onboard { position: fixed; inset: 0; z-index: 100; background: linear-gradient(160deg,#5b50c7,#3a3486); display: none; align-items: center; justify-content: center; padding: 20px; }
   #onboard.show { display: flex; }
-  .obCard { background: #fff; border-radius: 22px; width: 440px; max-width: 94vw; max-height: 92vh; overflow-y: auto; padding: 30px; box-shadow: 0 24px 70px rgba(0,0,0,0.35); }
+  .obCard { background: #fff; border-radius: 22px; width: 440px; max-width: 94vw; max-height: 92vh; max-height: 92dvh; overflow-y: auto; padding: 30px; box-shadow: 0 24px 70px rgba(0,0,0,0.35); }
   .obCard h2 { font-size: 24px; letter-spacing: 1px; display: flex; align-items: center; gap: 9px; margin-bottom: 6px; }
   .obCard h2 span { color: #5b50c7; }
   .obCard .tagline { color: #6b7280; font-size: 14px; margin-bottom: 22px; line-height: 1.5; }
   .obStep { display: none; }
   .obStep.active { display: block; }
   .obOption { border: 1px solid #e7e9ef; border-radius: 14px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
-  .obOption:hover { border-color: #5b50c7; background: #f8f8fe; }
+  @media (hover:hover) { .obOption:hover { border-color: #5b50c7; background: #f8f8fe; } }
   .obOption .t { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
   .obOption .d { font-size: 13px; color: #6b7280; line-height: 1.45; }
   .obBack { background: none; border: none; color: #6b7280; font-size: 13px; cursor: pointer; margin-bottom: 12px; padding: 0; }
@@ -270,7 +280,22 @@
     .infoRow .k { width:auto; font-size:12px; }
     dialog { width:94vw; padding:18px; }
     .obCard { padding:22px 18px; }
+    /* iOS hace zoom si un campo tiene letra < 16px */
+    input, select, textarea { font-size:16px !important; }
+    #obOtp { font-size:20px !important; }
+    /* Botones y controles con área de toque cómoda */
+    .btn.small { padding:9px 14px; font-size:14px; }
+    .chip { padding:7px 12px; font-size:13px; }
+    #panelClose, .gClose { padding:10px; font-size:20px; }
+    .connItem .del { display:inline-block; padding:8px 0; font-size:13px; }
+    .obBack { padding:8px 0; font-size:14px; }
+    .demoLink a { display:inline-block; padding:10px; }
+    header .btn.primary { padding:7px 10px; font-size:13px; }
+    .mapTools > strong { display:none; }
+    .solRow { flex-wrap:wrap; }
+    .solRow .solBtns { flex-basis:100%; display:flex; gap:8px; margin-top:6px; }
   }
+  @media (max-width: 480px) { .twoCol { flex-direction:column; gap:0; } }
 path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 0 1px rgba(91,80,199,.9)); }
 .rutaInline { background:#eef2ff; border:1px solid #c7d0f5; border-radius:12px; padding:9px 12px; margin:8px 0; font-size:13px; cursor:pointer; }
 .rutaInline b { color:#3f3aa8; }
@@ -287,20 +312,20 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
     <!-- Step 0: correo (enlace mágico, sin contraseñas) -->
     <div class="obStep active" id="ob-email">
       <p class="tagline">La red profesional de médicos, por invitación.</p>
-      <p class="hint" style="margin:0 0 10px"><b>Paso 1:</b> entra con tu correo (te enviamos un código, sin contraseñas). <b>Paso 2:</b> ya adentro, escribes tu código de invitación MED-…</p>
+      <p class="hint" style="margin:0 0 10px" id="obPasos"><b>Paso 1:</b> entra con tu correo (te enviamos un código, sin contraseñas). <b>Paso 2:</b> ya adentro, escribes tu código de invitación MED-…</p>
       <label class="obLabel">Tu correo</label>
       <input id="obLoginEmail" type="email" placeholder="correo@ejemplo.com" autocomplete="email">
       <div class="obMsg" id="obLoginMsg"></div>
-      <button class="btn primary" id="btnMagic" style="width:100%;margin-top:6px" onclick="obSendMagic()">Enviarme el enlace de acceso</button>
-      <div id="obOtpWrap" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #e5e7eb">
-        <label class="obLabel">Escribe el código que viene en el correo</label>
+      <button class="btn primary" id="btnMagic" style="width:100%;margin-top:6px" onclick="obSendMagic()">Enviarme mi código de acceso</button>
+      <div id="obOtpWrap" style="margin-top:14px;padding-top:12px;border-top:1px solid #e5e7eb">
+        <label class="obLabel">¿Ya tienes el código del correo? Escríbelo aquí</label>
         <div style="display:flex;gap:8px">
-          <input id="obOtp" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="12345678" style="flex:1;letter-spacing:4px;font-size:18px;text-align:center">
+          <input id="obOtp" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="Código" autocomplete="one-time-code" style="flex:1;letter-spacing:4px;font-size:18px;text-align:center">
           <button class="btn primary" id="btnOtp" onclick="obVerifyOtp()">Entrar</button>
         </div>
         <div class="obMsg" id="obOtpMsg"></div>
       </div>
-      <p class="hint" style="margin-top:14px">Si ya eres miembro, entrarás directo. Si es tu primera vez, después del enlace podrás usar tu código de invitación.</p>
+      <p class="hint" style="margin-top:14px">Si ya eres miembro, entrarás directo. Si es tu primera vez, después podrás usar tu código de invitación MED-…</p>
     </div>
 
     <!-- Step 1: choose (ya con sesión, sin perfil todavía) -->
@@ -322,7 +347,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
       <button class="obBack" onclick="obShow('ob-choose')">← Volver</button>
       <p class="tagline">Escribe el código de invitación que te compartieron.</p>
       <label class="obLabel">Código de invitación</label>
-      <input id="obCodeInput" placeholder="Ej. MED-4F2A9" style="text-transform:uppercase">
+      <input id="obCodeInput" placeholder="Ej. MED-4F2A9" style="text-transform:uppercase" autocapitalize="characters" autocorrect="off" spellcheck="false" autocomplete="off">
       <div class="obMsg" id="obCodeMsg"></div>
       <button class="btn primary" style="width:100%;margin-top:6px" onclick="obCheckCode()">Continuar</button>
     </div>
@@ -380,7 +405,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
 
 <!-- HEADER -->
 <header>
-  <h1><svg width="22" height="22" viewBox="0 0 24 24"><path d="M8 16 L16 8 M9 18 L15 18" stroke="#b9b3e8" stroke-width="1.8" fill="none"/><circle cx="6" cy="18" r="3.4" fill="#5b50c7"/><circle cx="18" cy="6" r="3.4" fill="#1D9E75"/><circle cx="18" cy="18" r="2.6" fill="#D85A30"/></svg>MED<span>NODE</span></h1>
+  <h1><svg width="22" height="22" viewBox="0 0 24 24"><path d="M8 16 L16 8 M9 18 L15 18" stroke="#b9b3e8" stroke-width="1.8" fill="none"/><circle cx="6" cy="18" r="3.4" fill="#5b50c7"/><circle cx="18" cy="6" r="3.4" fill="#1D9E75"/><circle cx="18" cy="18" r="2.6" fill="#D85A30"/></svg>MED<span>NODE</span><span class="betaTag" title="Versión de prueba">beta</span></h1>
   <div class="grow"></div>
   <button class="btn small" id="langBtn" title="Cambiar idioma / Switch language" onclick="toggleLang()">EN</button>
   <button class="btn primary" onclick="openInviteDlg()">＋ Invitar colega</button>
@@ -399,7 +424,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
   <section class="tab" id="tab-directorio">
     <div class="wrap">
       <h2 class="sec">Directorio de médicos</h2>
-      <p class="lead">Encuentra colegas por especialidad, estado o institución. Haz clic en una tarjeta para ver el perfil.</p>
+      <p class="lead">Encuentra colegas por especialidad, estado o institución. Toca una tarjeta para ver el perfil.</p>
       <div id="sugerencias"></div>
       <div id="avalSug"></div>
       <div class="toolbar">
@@ -489,7 +514,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
       </div>
       <div id="mapLayout">
         <aside>
-          <h3>Filtros</h3>
+          <h3 style="display:flex;justify-content:space-between;align-items:center">Filtros <button class="gClose" onclick="toggleFilters()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#6b7280">✕</button></h3>
           <label class="lbl">Especialidad</label>
           <select id="fEsp"><option value="">Todas</option></select>
           <label class="lbl">País</label>
@@ -507,7 +532,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
             <option value="todos">Todos los médicos</option>
           </select>
           <label class="tipoRow" style="display:none"><input type="checkbox" id="fSoloConn" checked><span>Solo médicos conectados</span></label>
-          <p class="hint">El mapa muestra la genealogía profesional: quién formó a quién y quién ha trabajado con quién. Haz clic en un médico para ver su red.</p>
+          <p class="hint">El mapa muestra la genealogía profesional: quién formó a quién y quién ha trabajado con quién. Toca un médico para ver su red.</p>
         </aside>
         <div id="mapWrap">
           <svg id="map"></svg>
@@ -523,7 +548,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
           <div id="zoomHint">Rueda = zoom · Arrastrar = mover</div>
           <div id="tooltip"></div>
           <div id="panel"><button id="panelClose" onclick="closePanel()">✕</button><div id="panelBody"></div></div>
-          <div id="loadErr">No se pudo cargar el mapa mundial.<br>Revisa tu conexión a internet y vuelve a abrir el archivo.</div>
+          <div id="loadErr">No se pudo cargar el mapa mundial.<br>Revisa tu conexión a internet y recarga la página.</div>
         </div>
       </div>
     </div>
@@ -557,12 +582,13 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
     <label>País</label>
     <input id="dPais" list="paisList" required placeholder="México">
     <datalist id="paisList"></datalist>
+    <details style="margin-top:8px"><summary style="font-size:12px;color:#6b7280;cursor:pointer">Ubicación en el mapa (se calcula sola con la ciudad y el país)</summary>
     <button type="button" class="btn" style="margin-top:8px" onclick="geocode()">Buscar coordenadas de la ciudad</button>
     <div id="geoMsg"></div>
     <div class="twoCol">
-      <div><label>Latitud</label><input id="dLat" type="number" step="any" required></div>
-      <div><label>Longitud</label><input id="dLng" type="number" step="any" required></div>
-    </div>
+      <div><label>Latitud</label><input id="dLat" type="number" step="any"></div>
+      <div><label>Longitud</label><input id="dLng" type="number" step="any"></div>
+    </div></details>
     <div class="twoCol">
       <div><label>Correo</label><input id="dEmail" type="email" placeholder="correo@ejemplo.com"></div>
       <div><label>WhatsApp / teléfono (opcional)</label><input id="dTel" type="tel" placeholder="+52 878 123 4567"></div>
@@ -689,11 +715,26 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
   </div>
 </dialog>
 
+<div id="pwaBanner" style="display:none;position:fixed;left:12px;right:12px;bottom:56px;z-index:61;background:#fff;border:1px solid #e7e9ef;border-radius:14px;padding:12px 14px;box-shadow:0 8px 28px rgba(15,18,35,0.18);font-size:13.5px">
+  <div style="display:flex;gap:10px;align-items:flex-start">
+    <img src="/icon-192.png" alt="" style="width:40px;height:40px;border-radius:10px;flex:none">
+    <div style="flex:1">
+      <b>Instala MEDNODE en tu celular</b>
+      <div id="pwaTxt" style="color:#4b5563;margin-top:2px"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn primary small" id="pwaInstallBtn" onclick="pwaInstalar()" style="display:none">Instalar</button>
+        <button class="btn small" onclick="pwaCerrar()">Ahora no</button>
+      </div>
+    </div>
+  </div>
+</div>
+<button id="btnReporte" onclick="reportarProblema()" style="display:none">🛠 Reportar un problema</button>
 <dialog id="dlgMenu">
   <h3>Mi cuenta</h3>
   <p class="dlgsub" id="menuWho"></p>
   <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
     <button class="btn" onclick="exportData()">Descargar copia de mis datos (.json)</button>
+    <button class="btn" onclick="reportarProblema()">Reportar un problema</button>
     <button class="btn" onclick="logout()">Cerrar sesión</button>
   </div>
   <div class="dlgBtns"><button class="btn primary" onclick="dlgMenu.close()">Cerrar</button></div>
@@ -730,7 +771,11 @@ const DICT = {
   "Explorar con datos de ejemplo →": "Explore with sample data →",
   "← Volver": "← Back",
   "Escribe el código de invitación que te compartieron.": "Enter the invitation code you were given.",
-  "Escribe el código que viene en el correo": "Type the code from the email",
+  "¿Ya tienes el código del correo? Escríbelo aquí": "Already have the code from the email? Type it here",
+  "Tu correo": "Your email", "Enviarme mi código de acceso": "Send me my access code", "Entrar": "Sign in",
+  "Salir de esta cuenta": "Sign out of this account", "Tu cuenta está lista. Ahora crea tu perfil de médico.": "Your account is ready. Now create your physician profile.",
+  "Si ya eres miembro, entrarás directo. Si es tu primera vez, después podrás usar tu código de invitación MED-…": "If you are already a member you'll go straight in. If it's your first time, you'll use your MED-… invitation code next.",
+  "Ubicación en el mapa (se calcula sola con la ciudad y el país)": "Map location (computed automatically from city and country)",
   "La red profesional de médicos, por invitación.": "The invitation-only professional network for physicians.",
   "Código de invitación": "Invitation code",
   "Ej. MED-4F2A9": "e.g. MED-4F2A9",
@@ -776,7 +821,7 @@ const DICT = {
   "＋ Invitar colega": "＋ Invite colleague", "Genealogía": "Genealogy", "Directorio": "Directory", "Mi perfil": "My profile",
   // Directory
   "Directorio de médicos": "Physician directory",
-  "Encuentra colegas por especialidad, estado o institución. Haz clic en una tarjeta para ver el perfil.": "Find colleagues by specialty, state or institution. Click a card to see the profile.",
+  "Encuentra colegas por especialidad, estado o institución. Toca una tarjeta para ver el perfil.": "Find colleagues by specialty, state or institution. Tap a card to see the profile.",
   "Buscar por nombre, especialidad, hospital...": "Search by name, specialty, hospital...",
   "Toda especialidad": "All specialties", "Todo estado/país": "All states/countries",
   "No hay médicos que coincidan con tu búsqueda.": "No physicians match your search.",
@@ -791,9 +836,9 @@ const DICT = {
   "Todas": "All", "Todos": "All", "Institución": "Institution", "Especialidades": "Specialties", "Tipo de trazo": "Line type",
   "Mostrar": "Show", "Solo médicos conectados": "Only connected physicians",
   "Mi red (hasta 2 grados)": "My network (up to 2 degrees)", "Todos los médicos conectados": "All connected physicians", "Todos los médicos": "All physicians",
-  "El mapa muestra la genealogía profesional: quién formó a quién y quién ha trabajado con quién. Haz clic en un médico para ver su red.": "The map shows professional genealogy: who trained whom and who has worked with whom. Click a physician to see their network.",
+  "El mapa muestra la genealogía profesional: quién formó a quién y quién ha trabajado con quién. Toca un médico para ver su red.": "The map shows professional genealogy: who trained whom and who has worked with whom. Tap a physician to see their network.",
   "Rueda = zoom · Arrastrar = mover": "Wheel = zoom · Drag = pan", "Acercar": "Zoom in", "Alejar": "Zoom out", "Ocultar": "Hide",
-  "No se pudo cargar el mapa mundial.": "Could not load the world map.", "Revisa tu conexión a internet y vuelve a abrir el archivo.": "Check your internet connection and reopen the file.",
+  "No se pudo cargar el mapa mundial.": "Could not load the world map.", "Revisa tu conexión a internet y recarga la página.": "Check your internet connection and reload the page.",
   "Primeros pasos": "First steps",
   // Relationship types
   "Maestro → alumno": "Mentor → trainee", "Recomendó / avaló": "Recommended / endorsed", "Rotaron juntos": "Rotated together",
@@ -903,6 +948,7 @@ function translateDOM(root) {
 const PLACEHOLDER_ONLY = new Set(["Dra. Ana Martínez", "Electrofisiología", "Hospital General de México", "Toluca", "Estado de México", "Cardiología / Medicina general"]);
 function toggleLang() { setLang(lang === "es" ? "en" : "es"); }
 function setLang(l) {
+  try { document.getElementById("obPasos").innerHTML = (l === "en") ? "<b>Step 1:</b> sign in with your email (we send you a code, no passwords). <b>Step 2:</b> once inside, enter your MED-… invitation code" : "<b>Paso 1:</b> entra con tu correo (te enviamos un código, sin contraseñas). <b>Paso 2:</b> ya adentro, escribes tu código de invitación MED-…"; } catch (e) {}
   lang = l === "en" ? "en" : "es";
   state.session.lang = lang; save();
   try { document.documentElement.lang = lang; const b = document.getElementById("langBtn"); if (b) b.textContent = lang === "es" ? "EN" : "ES"; } catch (e) {}
@@ -934,7 +980,52 @@ const rowToDoc = (r) => ({ id: r.id, nombre: r.nombre, esp: r.esp, sub: r.sub, i
 const rowToConn = (r) => ({ id: r.id, from: r.from_id, to: r.to_id, tipo: r.tipo, detalle: r.detalle, estado: r.estado, creadaPor: r.creada_por });
 const rowToInvite = (r) => ({ id: r.id, code: r.code, creadaPor: r.creada_por, paraDoc: r.para_doc, usada: r.usada, usadaPor: r.usada_por, fecha: r.created_at });
 const rowToContact = (r) => ({ id: r.id, de: r.de, para: r.para, motivo: r.motivo, detalle: r.detalle, estado: r.estado, fecha: r.created_at, respondida: r.respondida });
-function sbErr(e, ctx) { console.error(ctx, e); alert((ctx ? ctx + ": " : "") + (e && e.message ? e.message : t("No se pudo conectar con el servidor.", "Could not reach the server."))); }
+let _ultimoError = "";
+function sbErr(e, ctx) { console.error(ctx, e); _ultimoError = (ctx ? ctx + ": " : "") + ((e && e.message) || String(e)); alert((ctx ? ctx + ": " : "") + friendlyErr(e)); }
+window.addEventListener("error", (ev) => { try { _ultimoError = (ev.message || "") + " @" + (ev.lineno || ""); } catch (e) {} });
+window.addEventListener("unhandledrejection", (ev) => { try { _ultimoError = (ev.reason && ev.reason.message) || String(ev.reason); } catch (e) {} });
+const REPORTE_WA = ""; // WhatsApp del fundador para reportes (con lada, ej. 52878...). Vacío = se usa el correo.
+const REPORTE_MAIL = "cristobal.garza@gmail.com";
+function reportarProblema() {
+  const me = currentUser();
+  const pantalla = (document.getElementById("onboard").classList.contains("show") ? "acceso" : (currentTab || "?")) + (currentTab === "genealogia" ? "/" + viewMode : "");
+  const txt = "Reporte MEDNODE beta\n" +
+    "Quién: " + (me ? me.nombre : (authUser ? authUser.email : "sin sesión")) + "\n" +
+    "Pantalla: " + pantalla + "\n" +
+    "Dispositivo: " + (navigator.userAgent.match(/iPhone|iPad|Android|Windows|Macintosh/) || ["?"])[0] + " · " + window.innerWidth + "x" + window.innerHeight + "\n" +
+    "Último error: " + (_ultimoError || "ninguno") + "\n" +
+    "Versión: " + APP_VERSION + "\n\n" +
+    "Qué pasó: ";
+  try { dlgMenu.close(); } catch (e) {}
+  if (REPORTE_WA) window.open("https://wa.me/" + REPORTE_WA + "?text=" + encodeURIComponent(txt), "_blank");
+  else window.location.href = "mailto:" + REPORTE_MAIL + "?subject=" + encodeURIComponent("Reporte MEDNODE beta") + "&body=" + encodeURIComponent(txt);
+}
+const APP_VERSION = "2026-09-12";
+/* ============ APP INSTALABLE (PWA) ============ */
+let _pwaPrompt = null;
+const PWA_STANDALONE = window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true);
+if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); }); }
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); _pwaPrompt = e; pwaMostrar(); });
+function pwaMostrar() {
+  if (PWA_STANDALONE) return;
+  try { if (localStorage.getItem("mednode_pwa_no") === "1") return; } catch (e) {}
+  if (!currentUser()) return;            // solo ya adentro
+  const b = document.getElementById("pwaBanner"), tx = document.getElementById("pwaTxt"), ib = document.getElementById("pwaInstallBtn");
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const android = /Android/.test(navigator.userAgent);
+  if (_pwaPrompt) { ib.style.display = ""; tx.textContent = t("Queda con icono en tu pantalla de inicio y abre a pantalla completa, como una app.", "It gets an icon on your home screen and opens full-screen, like an app."); }
+  else if (ios) { ib.style.display = "none"; tx.innerHTML = t("En Safari toca <b>Compartir</b> (el cuadro con la flecha ↑) y luego <b>Agregar a pantalla de inicio</b>.", "In Safari tap <b>Share</b> (the box with the ↑ arrow) and then <b>Add to Home Screen</b>."); }
+  else if (android) { ib.style.display = "none"; tx.innerHTML = t("En Chrome toca el menú <b>⋮</b> y luego <b>Agregar a pantalla principal</b> / <b>Instalar app</b>.", "In Chrome tap the <b>⋮</b> menu and then <b>Add to Home screen</b> / <b>Install app</b>."); }
+  else return;                          // en computadora no molestar
+  b.style.display = "block";
+}
+async function pwaInstalar() {
+  if (!_pwaPrompt) return;
+  _pwaPrompt.prompt();
+  try { await _pwaPrompt.userChoice; } catch (e) {}
+  _pwaPrompt = null; pwaCerrar(false);
+}
+function pwaCerrar(recordar) { document.getElementById("pwaBanner").style.display = "none"; if (recordar !== false) { try { localStorage.setItem("mednode_pwa_no", "1"); } catch (e) {} } }
 // Carga TODO lo que este usuario puede ver, desde la nube, al estado en memoria.
 async function cloudLoad() {
   const prefs = loadPrefs();
@@ -952,7 +1043,7 @@ async function cloudLoad() {
     if (mine.error) throw mine.error;
     if (mine.data) { me = rowToDoc(mine.data); const idx = docs.findIndex((x) => x.id === me.id); if (idx >= 0) docs[idx] = me; else docs.push(me); }
   }
-  state = normalize({ doctors: docs, conns: c.data.map(rowToConn), invites: i.data.map(rowToInvite), contactos: k.data.map(rowToContact),
+  state = normalize({ doctors: docs, conns: c.data.map(rowToConn).filter((x) => TIPOS[x.tipo]), invites: i.data.map(rowToInvite), contactos: k.data.map(rowToContact),
     posts: [], eventos: [], encuestas: [],
     session: { currentUserId: me ? me.id : null, lastSeenBuzon: 0, lang: prefs.lang || "es", hideGuia: !!prefs.hideGuia, lastExport: prefs.lastExport || null } });
   state.esDemo = false;
@@ -1067,13 +1158,14 @@ async function obSendMagic() {
   btn.disabled = false;
   if (error) { msg.style.color = "#b03434"; msg.textContent = t("No se pudo enviar: ", "Could not send: ") + error.message; return; }
   msg.style.color = "#0f6e56"; msg.textContent = t("Listo. Abre tu correo (" + email + ") y escribe aquí abajo el código que trae (o toca el botón del correo). Usa siempre el correo más reciente: cada envío cancela el anterior.", "Done. Open your email (" + email + ") and type the code below (or tap the button in the email). Always use the most recent email: each new request cancels the previous one.");
-  document.getElementById("obOtpWrap").style.display = "block";
+  try { localStorage.setItem("mednode_last_email", email); } catch (e) {}
   try { document.getElementById("obOtp").focus(); } catch (e) {}
 }
 async function obVerifyOtp() {
   const email = document.getElementById("obLoginEmail").value.trim().toLowerCase();
   const token = (document.getElementById("obOtp").value || "").replace(/\D/g, "");
   const msg = document.getElementById("obOtpMsg"), btn = document.getElementById("btnOtp");
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.style.color = "#b03434"; msg.textContent = t("Escribe arriba el correo al que llegó el código.", "Enter above the email where the code arrived."); return; }
   if (token.length < 6 || token.length > 8) { msg.style.color = "#b03434"; msg.textContent = t("Escribe el código numérico completo que viene en el correo.", "Type the full numeric code from the email."); return; }
   btn.disabled = true; msg.style.color = "#0f6e56"; msg.textContent = t("Verificando...", "Verifying...");
   const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
@@ -1097,9 +1189,12 @@ async function obVerifyOtp() {
   } catch (e) {}
 })();
 try { document.getElementById("obOtp").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); obVerifyOtp(); } }); } catch (e) {}
+try { document.getElementById("obLoginEmail").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); obSendMagic(); } }); } catch (e) {}
+try { document.getElementById("obCodeInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); obCheckCode(); } }); } catch (e) {}
+try { const le = localStorage.getItem("mednode_last_email"); if (le && !document.getElementById("obLoginEmail").value) document.getElementById("obLoginEmail").value = le; } catch (e) {}
 function obGoFounderGuard() { return true; }
 // Centro aproximado [lng, lat] por país, como respaldo cuando no se encuentra la ciudad
-const PAIS_CENTRO = { "méxico": [-102.5, 23.6], "mexico": [-102.5, 23.6], "estados unidos": [-98.5, 39.8], "usa": [-98.5, 39.8], "españa": [-3.7, 40.4], "spain": [-3.7, 40.4], "argentina": [-64, -34.6], "brasil": [-51.9, -14.2], "brazil": [-51.9, -14.2], "colombia": [-74.1, 4.7], "chile": [-70.7, -33.4], "perú": [-77, -12], "peru": [-77, -12], "guatemala": [-90.5, 14.6], "costa rica": [-84.1, 9.9], "panamá": [-79.5, 9], "panama": [-79.5, 9], "ecuador": [-78.5, -0.2], "venezuela": [-66.9, 10.5], "uruguay": [-56.2, -34.9], "canadá": [-79.4, 43.7], "canada": [-79.4, 43.7], "francia": [2.3, 48.9], "france": [2.3, 48.9], "alemania": [13.4, 52.5], "germany": [13.4, 52.5], "italia": [12.5, 41.9], "italy": [12.5, 41.9], "reino unido": [-0.1, 51.5], "united kingdom": [-0.1, 51.5], "portugal": [-9.1, 38.7] };
+const PAIS_CENTRO = { "méxico": [-102.5, 23.6], "mexico": [-102.5, 23.6], "estados unidos": [-98.5, 39.8], "usa": [-98.5, 39.8], "españa": [-3.7, 40.4], "spain": [-3.7, 40.4], "argentina": [-64, -34.6], "brasil": [-51.9, -14.2], "brazil": [-51.9, -14.2], "colombia": [-74.1, 4.7], "chile": [-70.7, -33.4], "perú": [-77, -12], "peru": [-77, -12], "guatemala": [-90.5, 14.6], "costa rica": [-84.1, 9.9], "panamá": [-79.5, 9], "panama": [-79.5, 9], "ecuador": [-78.5, -0.2], "venezuela": [-66.9, 10.5], "uruguay": [-56.2, -34.9], "canadá": [-79.4, 43.7], "canada": [-79.4, 43.7], "francia": [2.3, 48.9], "france": [2.3, 48.9], "alemania": [13.4, 52.5], "germany": [13.4, 52.5], "italia": [12.5, 41.9], "italy": [12.5, 41.9], "reino unido": [-0.1, 51.5], "united kingdom": [-0.1, 51.5], "portugal": [-9.1, 38.7], "bolivia": [-68.1, -16.5], "paraguay": [-57.6, -25.3], "cuba": [-82.4, 23.1], "república dominicana": [-69.9, 18.5], "republica dominicana": [-69.9, 18.5], "honduras": [-87.2, 14.1], "el salvador": [-89.2, 13.7], "nicaragua": [-86.3, 12.1], "puerto rico": [-66.1, 18.4], "países bajos": [4.9, 52.4], "paises bajos": [4.9, 52.4], "india": [77.2, 28.6], "corea del sur": [127, 37.6], "japón": [139.7, 35.7], "japon": [139.7, 35.7], "australia": [151.2, -33.9] };
 let obInviteCode = null; // { code, inviterNombre, paraDoc, bound }
 function obGoInvite() { document.getElementById("obCodeMsg").textContent = ""; obShow("ob-code"); }
 function obGoFounder() {
@@ -1116,9 +1211,12 @@ async function obCheckCode() {
   if (!code) { msg.style.color = "#b03434"; msg.textContent = t("Escribe el código.", "Enter the code."); return; }
   msg.style.color = "#0f6e56"; msg.textContent = t("Verificando...", "Checking...");
   const r = await sb.rpc("peek_invite", { p_code: code });
-  const inv = (!r.error && r.data && r.data.length) ? r.data[0] : null;
+  if (r.error) { msg.style.color = "#b03434"; msg.textContent = t("Sin conexión con el servidor. Revisa tu internet e intenta de nuevo.", "Could not reach the server. Check your internet and try again."); return; }
+  const inv = (r.data && r.data.length) ? r.data[0] : null;
   if (!inv) { msg.style.color = "#b03434"; msg.textContent = t("Código inválido o ya usado. Pídele otro a tu colega.", "Invalid or already used code. Ask your colleague for another one."); return; }
   msg.textContent = "";
+  ["obNombre", "obEsp", "obSub", "obInst", "obCiudad", "obEstado"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
+  document.getElementById("obPais").value = "México";
   obInviteCode = { code, inviterNombre: inv.inviter_nombre, paraDoc: inv.para_doc, bound: !!inv.para_nombre };
   document.getElementById("obEmail").value = authUser ? authUser.email : "";
   document.getElementById("obProfLead").textContent = t("Invitado por " + inv.inviter_nombre + ". Crea tu perfil.", "Invited by " + inv.inviter_nombre + ". Create your profile.");
@@ -1137,23 +1235,29 @@ async function obCheckCode() {
   document.getElementById("obProfBack").onclick = () => obShow("ob-code");
   obShow("ob-profile");
 }
+let _creating = false;
 async function obCreateProfile() {
+  if (_creating) return;
   const msg = document.getElementById("obProfMsg");
   const nombre = document.getElementById("obNombre").value.trim();
   const espv = document.getElementById("obEsp").value.trim();
   const ciudad = document.getElementById("obCiudad").value.trim();
   const pais = document.getElementById("obPais").value.trim();
   if (!nombre || !espv || !ciudad || !pais) { msg.style.color = "#b03434"; msg.textContent = t("Faltan datos: nombre, especialidad, ciudad y país son obligatorios.", "Missing data: name, specialty, city and country are required."); return; }
-  const cedulaV = document.getElementById("obCedula").value.trim();
+  const cedulaV = document.getElementById("obCedula").value.replace(/[\s-]/g, "").trim();
   if (!cedulaV) { msg.style.color = "#b03434"; msg.textContent = t("La cédula profesional es obligatoria para registrarte.", "The professional license number is required to register."); return; }
   if (!/^\d{6,10}$/.test(cedulaV)) { msg.style.color = "#b03434"; msg.textContent = t("Escribe solo los números de tu cédula profesional (normalmente 7 u 8 dígitos).", "Enter only the digits of your professional license (usually 7 or 8 digits)."); return; }
   const emailV = (authUser && authUser.email) ? authUser.email : document.getElementById("obEmail").value.trim();
   const privEl = document.getElementById("obPriv");
   if (!privEl || !privEl.checked) { msg.style.color = "#b03434"; msg.textContent = t("Debes aceptar el Aviso de privacidad para continuar.", "You must accept the Privacy Notice to continue."); return; }
+  _creating = true;
+  const btnCrear = document.querySelector("#ob-profile .btn.primary"); if (btnCrear) btnCrear.disabled = true;
+  try {
   msg.style.color = "#0f6e56"; msg.textContent = t("Buscando ubicación de la ciudad...", "Looking up the city location...");
   const fb = PAIS_CENTRO[(pais || "").trim().toLowerCase()] || [-102.5, 23.6];
   let c = null; try { c = await geocodeCity(ciudad, pais); } catch (e) {}
   const lat = c ? c[1] : fb[1], lng = c ? c[0] : fb[0];
+  const ubicAprox = !c;
   const sede = document.getElementById("obSede").value.trim();
   const formacion = sede ? [{ sede, inicio: parseInt(document.getElementById("obIni").value, 10) || null, fin: parseInt(document.getElementById("obFin").value, 10) || null }] : [];
   msg.textContent = t("Creando tu perfil...", "Creating your profile...");
@@ -1163,16 +1267,33 @@ async function obCreateProfile() {
     p_lat: lat, p_lng: lng, p_email: emailV, p_cedula: cedulaV, p_formacion: formacion, p_busca: document.getElementById("obBusca").value.trim(),
     p_rel: obInviteCode ? ((document.getElementById("obRel") || {}).value || "amistad") : ""
   });
-  if (r.error) { msg.style.color = "#b03434"; msg.textContent = r.error.message; return; }
+  if (r.error) { msg.style.color = "#b03434"; msg.textContent = friendlyErr(r.error); return; }
   try { await cloudLoad(); } catch (e) { sbErr(e); return; }
   onboard.classList.remove("show");
   boot();
+  if (ubicAprox) setTimeout(() => alert(t("No encontramos la ciudad \"" + ciudad + "\" en el mapa; te ubicamos en el centro de " + pais + ". Puedes corregirlo en Mi perfil → Editar.", "We couldn't find the city \"" + ciudad + "\" on the map; we placed you at the center of " + pais + ". You can fix it in My profile → Edit.")), 400);
   if (sugerencias(state.session.currentUserId).length) setTab("directorio");
+  } finally { _creating = false; if (btnCrear) btnCrear.disabled = false; }
+}
+// Mensajes de error entendibles (en vez del texto crudo de la base de datos)
+function friendlyErr(e) {
+  const m = (e && e.message) ? e.message : "";
+  if (/cédula|cedula/i.test(m) && /registrada|inválida|invalida/i.test(m)) return m;
+  if (/duplicate|unique/i.test(m)) return t("Ya existe un perfil con esa cédula o ese correo.", "A profile with that license or email already exists.");
+  if (/código|code|invite/i.test(m)) return t("El código de invitación no es válido o ya fue usado.", "The invitation code is invalid or already used.");
+  if (/Failed to fetch|network|timeout|504|502/i.test(m)) return t("Sin conexión con el servidor. Revisa tu internet e intenta de nuevo.", "Could not reach the server. Check your internet and try again.");
+  if (/JWT|token|session/i.test(m)) return t("Tu sesión caducó. Entra de nuevo con tu correo.", "Your session expired. Sign in again with your email.");
+  return m || t("No se pudo completar. Intenta de nuevo.", "Could not complete. Try again.");
 }
 async function logout() {
   try { dlgMenu.close(); } catch (e) {}
-  await sb.auth.signOut();
+  try { await sb.auth.signOut(); } catch (e) {}
   authUser = null; state.session.currentUserId = null; state.doctors = []; state.conns = []; state.invites = []; state.contactos = [];
+  for (const k in contactCache) delete contactCache[k];
+  try { closePanel(); } catch (e) {}
+  ["obLoginMsg", "obOtpMsg", "obCodeMsg", "obProfMsg"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = ""; });
+  const o = document.getElementById("obOtp"); if (o) o.value = "";
+  try { document.getElementById("btnReporte").style.display = "none"; } catch (e) {}
   onboard.classList.add("show"); obShow("ob-email");
 }
 
@@ -1190,7 +1311,7 @@ function setTab(name) {
   if (name === "cursos") renderCursos();
   if (name === "encuestas") renderEncuestas();
   if (name === "perfil") renderMyProfile();
-  if (name === "genealogia" && mapReady) { if (sizeMap()) forceKey = ""; render(); }
+  if (name === "genealogia" && mapReady) { if (sizeMap()) { forceKey = ""; render(); fitToNodes(); } else render(); }
 }
 
 /* ============ DIRECTORIO ============ */
@@ -1423,10 +1544,10 @@ function renderMyProfile() {
     "<div style=\"background:#fff7ed;border:1px solid #fcd9b6;border-radius:14px;padding:14px 16px;margin-bottom:18px\">" +
       "<div style=\"font-weight:600;color:#b8531f;margin-bottom:8px\">" + t("Solicitudes de conexión", "Connection requests") + " (" + pend.length + ")</div>" +
       pend.map((c) => { const o = byId(c.creadaPor) || byId(c.from === d.id ? c.to : c.from);
-        return "<div style=\"display:flex;align-items:center;gap:10px;margin:8px 0\">" + (o ? avatar(o) : "") +
-          "<div style=\"flex:1;font-size:13.5px\"><b>" + esc(o ? o.nombre : tr("Un médico")) + "</b> " + t("dice que", "says they") + " " + relDesc(c) + ". <span style=\"color:#6b7280\">" + tr("¿Es cierto?") + "</span></div>" +
-          "<button class=\"btn small primary\" onclick=\"acceptConn('" + c.id + "')\">Aceptar</button>" +
-          "<button class=\"btn small danger\" onclick=\"rejectConn('" + c.id + "')\">Rechazar</button></div>";
+        return "<div class=\"solRow\" style=\"display:flex;align-items:center;gap:10px;margin:8px 0\">" + (o ? avatar(o) : "") +
+          "<div style=\"flex:1;min-width:140px;font-size:13.5px\"><b>" + esc(o ? o.nombre : tr("Un médico")) + "</b> " + t("dice que", "says they") + " " + relDesc(c) + ". <span style=\"color:#6b7280\">" + tr("¿Es cierto?") + "</span></div>" +
+          "<div class=\"solBtns\" style=\"display:flex;gap:6px\"><button class=\"btn small primary\" onclick=\"acceptConn('" + c.id + "')\">Aceptar</button>" +
+          "<button class=\"btn small danger\" onclick=\"rejectConn('" + c.id + "')\">Rechazar</button></div></div>";
       }).join("") + "</div>" : "";
   const ctPend = state.contactos.filter((c) => c.para === d.id && c.estado === "pendiente");
   const ctAcept = state.contactos.filter((c) => c.para === d.id && c.estado === "aceptada");
@@ -1435,12 +1556,12 @@ function renderMyProfile() {
       "<div style=\"font-weight:600;color:#3f3aa8;margin-bottom:4px\">" + t("Solicitudes de contacto", "Contact requests") + " (" + ctPend.length + ")</div>" +
       "<div style=\"font-size:12.5px;color:#6b7280;margin-bottom:8px\">" + t("Quieren tu correo/teléfono. Solo si aceptas, los verán.", "They want your email/phone. Only if you accept will they see them.") + "</div>" +
       ctPend.map((c) => { const o = byId(c.de);
-        return "<div style=\"display:flex;align-items:flex-start;gap:10px;margin:10px 0\">" + (o ? avatar(o) : "") +
-          "<div style=\"flex:1;font-size:13.5px\"><b>" + esc(o ? o.nombre : tr("Un médico")) + "</b>" + (o ? " <span style=\"color:#6b7280\">· " + esc(espT(o.esp)) + ", " + esc(o.ciudad) + "</span>" : "") +
+        return "<div class=\"solRow\" style=\"display:flex;align-items:flex-start;gap:10px;margin:10px 0\">" + (o ? avatar(o) : "") +
+          "<div style=\"flex:1;min-width:140px;font-size:13.5px\"><b>" + esc(o ? o.nombre : tr("Un médico")) + "</b>" + (o ? " <span style=\"color:#6b7280\">· " + esc(espT(o.esp)) + ", " + esc(o.ciudad) + "</span>" : "") +
           "<div style=\"margin-top:2px\"><b>" + tr("Motivo") + ":</b> " + esc(motivoT(c.motivo)) + "</div>" +
           (c.detalle ? "<div style=\"color:#374151;margin-top:2px;font-style:italic\">“" + esc(c.detalle) + "”</div>" : "") +
           "<div style=\"color:#8a919c;font-size:12px;margin-top:2px\">" + timeAgo(c.fecha) + "</div></div>" +
-          "<div style=\"display:flex;flex-direction:column;gap:6px\"><button class=\"btn small primary\" onclick=\"resolverContacto('" + c.id + "','aceptada')\">Aceptar</button>" +
+          "<div class=\"solBtns\" style=\"display:flex;flex-direction:column;gap:6px\"><button class=\"btn small primary\" onclick=\"resolverContacto('" + c.id + "','aceptada')\">Aceptar</button>" +
           "<button class=\"btn small danger\" onclick=\"resolverContacto('" + c.id + "','rechazada')\">Rechazar</button></div></div>";
       }).join("") + "</div>" : "";
   const autorizadosHTML = ctAcept.length ?
@@ -1481,12 +1602,18 @@ function randomCode() {
   return "MED-" + s;
 }
 async function openInviteDlg(forDocId) {
-  const code = randomCode();
   const target = forDocId ? byId(forDocId) : null;
-  const r = await sb.from("invites").insert({ code, creada_por: state.session.currentUserId, para_doc: (target && target.registrado === false) ? target.id : null });
-  if (r.error) { sbErr(r.error); return; }
-  try { await cloudLoad(); } catch (e) {}
-  renderGuia();
+  const paraDoc = (target && target.registrado === false) ? target.id : null;
+  const me = state.session.currentUserId;
+  // Reutilizar un código propio aún no usado (mismo destino) en vez de crear uno cada vez que se abre el diálogo
+  const libre = (state.invites || []).find((i) => i.creadaPor === me && !i.usada && (i.paraDoc || null) === paraDoc);
+  let code = libre ? libre.code : randomCode();
+  if (!libre) {
+    const r = await sb.from("invites").insert({ code, creada_por: me, para_doc: paraDoc });
+    if (r.error) { sbErr(r.error); return; }
+    try { await cloudLoad(); } catch (e) {}
+    renderGuia();
+  }
   inviteActual = { code, target: (target && target.registrado === false) ? target : null };
   const nb = document.getElementById("btnShareNative"); if (nb) nb.style.display = (typeof navigator !== "undefined" && navigator.share) ? "" : "none";
   document.getElementById("inviteCode").textContent = code;
@@ -1502,8 +1629,8 @@ function inviteMessage() {
   const saludo = tg ? (lang === "en" ? "Hi " + tg.nombre + "," : "Hola " + tg.nombre + ",") : (lang === "en" ? "Hi," : "Hola,");
   const link = APP_URL ? (lang === "en" ? "\nEnter here: " + APP_URL : "\nEntra aquí: " + APP_URL) : "";
   return lang === "en"
-    ? saludo + " I'd like to invite you to MEDNODE, the invitation-only professional network for physicians where we map our medical genealogy (who trained whom, who we've worked with).\n\nYour invitation code is: " + code + link + "\n\nWhen you open it, choose \"I have an invitation code\" and enter it." + (tg ? " Your profile is already created — you just confirm your details." : "") + "\n\n— " + (me ? me.nombre : "")
-    : saludo + " te invito a MEDNODE, la red profesional de médicos por invitación donde mapeamos nuestra genealogía médica (quién formó a quién, con quién hemos trabajado).\n\nTu código de invitación es: " + code + link + "\n\nAl abrirlo, elige \"Tengo un código de invitación\" y escríbelo." + (tg ? " Tu perfil ya está creado — solo confirmas tus datos." : "") + "\n\n— " + (me ? me.nombre : "");
+    ? saludo + " I'd like to invite you to MEDNODE, the invitation-only professional network for physicians where we map our medical genealogy (who trained whom, who we've worked with).\n\nYour invitation code is: " + code + link + "\n\nWhen you open it: 1) sign in with your email (you'll get an access code), 2) choose \"I have an invitation code\" and enter yours." + (tg ? " Your profile is already created — you just confirm your details." : "") + "\n\n— " + (me ? me.nombre : "")
+    : saludo + " te invito a MEDNODE, la red profesional de médicos por invitación donde mapeamos nuestra genealogía médica (quién formó a quién, con quién hemos trabajado).\n\nTu código de invitación es: " + code + link + "\n\nAl abrirlo: 1) entra con tu correo (te llega un código de acceso), 2) elige \"Tengo un código de invitación\" y escribe el tuyo." + (tg ? " Tu perfil ya está creado — solo confirmas tus datos." : "") + "\n\n— " + (me ? me.nombre : "");
 }
 function shareInvite(kind) {
   if (!inviteActual) return;
@@ -1518,8 +1645,8 @@ function shareInvite(kind) {
 function openPriv() {
   document.getElementById("privTitle").textContent = t("Aviso de privacidad", "Privacy Notice");
   document.getElementById("privBody").innerHTML = lang === "en"
-    ? "<p><b>Who we are.</b> MEDNODE is an invitation-only professional network for physicians. Data controller: the MEDNODE founder (contact: [contact email]).</p><p><b>What we collect.</b> Your name, specialty, institution, city, professional license number, email and, if you add it, phone — only what you enter yourself.</p><p><b>Your email and phone are private.</b> They are never shown to other members. Anyone wishing to contact you must send a request stating who they are and why; only if you accept will they see your details, and you can revoke it at any time.</p><p><b>Why.</b> To create your professional profile and show your professional relationships (training, collaborations, recommendations) to other member physicians.</p><p><b>What we never do.</b> We do not sell or share your data with third parties or for advertising without your explicit consent. MEDNODE never stores patient information.</p><p><b>Your rights.</b> You can view, edit or delete your profile at any time from 'My profile'. Connections that involve you require your confirmation.</p><p style=\"color:#6b7280;font-size:12px\">Short version. The full notice will be published on the website.</p>"
-    : "<p><b>Quiénes somos.</b> MEDNODE es una red profesional de médicos por invitación. Responsable: el fundador de MEDNODE (contacto: [correo de contacto]).</p><p><b>Qué recopilamos.</b> Tu nombre, especialidad, institución, ciudad, cédula profesional, correo y, si lo agregas, teléfono — solo lo que tú mismo capturas.</p><p><b>Tu correo y teléfono son privados.</b> Nunca se muestran a otros miembros. Quien quiera contactarte debe enviarte una solicitud indicando quién es y el motivo; solo si tú la aceptas verá tus datos, y puedes revocarlo cuando quieras.</p><p><b>Para qué.</b> Para crear tu perfil profesional y mostrar tus relaciones profesionales (formación, colaboraciones, recomendaciones) a otros médicos miembros.</p><p><b>Lo que nunca hacemos.</b> No vendemos ni compartimos tus datos con terceros ni con fines publicitarios sin tu consentimiento expreso. MEDNODE nunca almacena información de pacientes.</p><p><b>Tus derechos (ARCO).</b> Puedes ver, corregir o eliminar tu perfil en cualquier momento desde 'Mi perfil'. Las conexiones que te involucran requieren tu confirmación.</p><p style=\"color:#6b7280;font-size:12px\">Versión breve. El aviso completo se publicará en el sitio web.</p>";
+    ? "<p><b>Who we are.</b> MEDNODE is an invitation-only professional network for physicians. Data controller: the MEDNODE founder (contact: cristobal.garza@gmail.com).</p><p><b>What we collect.</b> Your name, specialty, institution, city, professional license number, email and, if you add it, phone — only what you enter yourself.</p><p><b>Your email and phone are private.</b> They are never shown to other members. Anyone wishing to contact you must send a request stating who they are and why; only if you accept will they see your details, and you can revoke it at any time.</p><p><b>Why.</b> To create your professional profile and show your professional relationships (training, collaborations, recommendations) to other member physicians.</p><p><b>What we never do.</b> We do not sell or share your data with third parties or for advertising without your explicit consent. MEDNODE never stores patient information.</p><p><b>Your rights.</b> You can view, edit or delete your profile at any time from 'My profile'. Connections that involve you require your confirmation.</p><p style=\"color:#6b7280;font-size:12px\">Short version. The full notice will be published on the website.</p>"
+    : "<p><b>Quiénes somos.</b> MEDNODE es una red profesional de médicos por invitación. Responsable: el fundador de MEDNODE (contacto: cristobal.garza@gmail.com).</p><p><b>Qué recopilamos.</b> Tu nombre, especialidad, institución, ciudad, cédula profesional, correo y, si lo agregas, teléfono — solo lo que tú mismo capturas.</p><p><b>Tu correo y teléfono son privados.</b> Nunca se muestran a otros miembros. Quien quiera contactarte debe enviarte una solicitud indicando quién es y el motivo; solo si tú la aceptas verá tus datos, y puedes revocarlo cuando quieras.</p><p><b>Para qué.</b> Para crear tu perfil profesional y mostrar tus relaciones profesionales (formación, colaboraciones, recomendaciones) a otros médicos miembros.</p><p><b>Lo que nunca hacemos.</b> No vendemos ni compartimos tus datos con terceros ni con fines publicitarios sin tu consentimiento expreso. MEDNODE nunca almacena información de pacientes.</p><p><b>Tus derechos (ARCO).</b> Puedes ver, corregir o eliminar tu perfil en cualquier momento desde 'Mi perfil'. Las conexiones que te involucran requieren tu confirmación.</p><p style=\"color:#6b7280;font-size:12px\">Versión breve. El aviso completo se publicará en el sitio web.</p>";
   document.getElementById("dlgPriv").showModal();
 }
 function copyInvite() {
@@ -1718,7 +1845,7 @@ const zoom = d3.zoom().scaleExtent([1, 14]).on("zoom", (ev) => {
 svg.call(zoom);
 let _lastNodeUp = 0, _nodeDown = null;
 // Clic en el fondo cierra el panel — salvo que llegue pegado a un clic sobre un nodo (evento fantasma).
-svg.on("click", () => { if (Date.now() - _lastNodeUp < 300) return; closePanel(); });
+svg.on("click", () => { if (Date.now() - _lastNodeUp < 300) return; closePanel(); const a = document.querySelector("#mapLayout aside.open"); if (a) a.classList.remove("open"); });
 
 d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
   .then((world) => {
@@ -1738,7 +1865,7 @@ d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
 
 function nodePositions() {
   const pos = {}, groups = {};
-  state.doctors.forEach((d) => { const key = Math.round(d.lat * 4) + "|" + Math.round(d.lng * 4); (groups[key] = groups[key] || []).push(d); });
+  state.doctors.forEach((d) => { if (d.lat == null || d.lng == null || isNaN(d.lat) || isNaN(d.lng)) return; const key = Math.round(d.lat * 4) + "|" + Math.round(d.lng * 4); (groups[key] = groups[key] || []).push(d); });
   Object.values(groups).forEach((grp) => {
     grp.forEach((d, i) => {
       const p = proj([d.lng, d.lat]);
@@ -2249,7 +2376,7 @@ function openProfile(id) {
     else if (c.tipo === "residencia") label = c.from === id ? "Su residente menor:" : "Su residente mayor:";
     else if (c.tipo === "coresidente") label = "Compañero de residencia:";
     label = tr(label);
-    return "<div class=\"connItem\" style=\"border-color:" + TIPOS[c.tipo].color + "\"><b>" + label + "</b> " + (other ? esc(other.nombre) : "?") + (c.detalle ? "<small>" + esc(c.detalle) + "</small>" : "") + (canDelConn(c) ? "<span class=\"del\" onclick=\"delConn('" + c.id + "')\">eliminar</span>" : "") + "</div>";
+    return "<div class=\"connItem\" style=\"border-color:" + TIPOS[c.tipo].color + "\"><b>" + label + "</b> " + (other ? esc(other.nombre) : "?") + (c.estado === "pendiente" ? " <small style=\"color:#b45309\">· " + t("pendiente de confirmar", "awaiting confirmation") + "</small>" : "") + (c.detalle ? "<small>" + esc(c.detalle) + "</small>" : "") + (canDelConn(c) ? "<span class=\"del\" onclick=\"delConn('" + c.id + "')\">eliminar</span>" : "") + "</div>";
   }).join("") || "<p class=\"row\" style=\"color:#8a919c\">Sin conexiones de este tipo.</p>";
   document.getElementById("panelBody").innerHTML =
     "<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:8px\">" +
@@ -2391,8 +2518,10 @@ function openDoctorDlg(id) {
   }
   dlgDoctor.showModal();
 }
+let _savingDoc = false;
 document.getElementById("formDoctor").addEventListener("submit", async (ev) => {
   ev.preventDefault();
+  if (_savingDoc) return;
   const id = document.getElementById("dId").value;
   const prev = id ? byId(id) : null;
   if (prev && !canEdit(prev)) { alert(t("Solo puedes editar tu propio perfil o los perfiles no registrados que tú creaste.", "You can only edit your own profile or unregistered profiles you created.")); return; }
@@ -2413,7 +2542,17 @@ document.getElementById("formDoctor").addEventListener("submit", async (ev) => {
   };
   const dsede = dSede.value.trim();
   if (dsede) doc.formacion.push({ sede: dsede, inicio: parseInt(dIni.value, 10) || null, fin: parseInt(dFin.value, 10) || null });
-  if (isNaN(doc.lat) || isNaN(doc.lng)) { alert(t("Falta la ubicación: usa el botón 'Buscar coordenadas'.", "Location missing: use the 'Find city coordinates' button.")); return; }
+  // Ubicación automática: si no hay coordenadas o cambió la ciudad/país, buscarlas; si falla, centro del país
+  const cityChanged = prev && ((prev.ciudad || "").trim().toLowerCase() !== doc.ciudad.toLowerCase() || (prev.pais || "").trim().toLowerCase() !== doc.pais.toLowerCase());
+  if (isNaN(doc.lat) || isNaN(doc.lng) || cityChanged) {
+    _savingDoc = true;
+    const sbtn = document.querySelector("#formDoctor button[type=submit]"); if (sbtn) sbtn.disabled = true;
+    let c = null; try { c = await geocodeCity(doc.ciudad, doc.pais); } catch (e) {}
+    _savingDoc = false; if (sbtn) sbtn.disabled = false;
+    const fb = PAIS_CENTRO[doc.pais.toLowerCase()] || [-102.5, 23.6];
+    doc.lat = c ? c[1] : fb[1]; doc.lng = c ? c[0] : fb[0];
+    if (!c) alert(t("No encontramos la ciudad en el mapa; se ubicará en el centro de " + doc.pais + ". Puedes ajustarlo después con 'Buscar coordenadas'.", "We couldn't find the city on the map; it will be placed at the center of " + doc.pais + ". You can adjust it later with 'Find city coordinates'."));
+  }
   const norm = (s) => (s || "").trim().toLowerCase();
   const exact = state.doctors.find((x) => x.id !== doc.id && norm(x.nombre) === norm(doc.nombre) && norm(x.esp) === norm(doc.esp) && norm(x.ciudad) === norm(doc.ciudad) && norm(x.pais) === norm(doc.pais));
   if (exact) { alert("\"" + exact.nombre + "\" ya está registrado con los mismos datos. Cambia algo que los distinga (institución, ciudad o especialidad)."); return; }
@@ -2427,10 +2566,13 @@ document.getElementById("formDoctor").addEventListener("submit", async (ev) => {
   if (!dEmail.disabled) row.email = doc.email;
   if (!dTel.disabled) row.tel = doc.tel;
   let r;
-  if (id) r = await sb.from("doctors").update(row).eq("id", id);
-  else r = await sb.from("doctors").insert(Object.assign(row, { registrado: false, rol: "miembro", creado_por: state.session.currentUserId, invited_by: state.session.currentUserId }));
-  if (r.error) { sbErr(r.error); return; }
+  _savingDoc = true;
   dlgDoctor.close();
+  try {
+    if (id) r = await sb.from("doctors").update(row).eq("id", id);
+    else r = await sb.from("doctors").insert(Object.assign(row, { registrado: false, rol: "miembro", creado_por: state.session.currentUserId, invited_by: state.session.currentUserId }));
+  } finally { _savingDoc = false; }
+  if (r.error) { sbErr(r.error); return; }
   await refresh();
 });
 async function geocodeCity(ciudad, pais) {
@@ -2568,6 +2710,8 @@ document.getElementById("formConn").addEventListener("submit", async (ev) => {
     tipo = cTipo.value; from = cFrom.value; to = cTo.value;
     if (tipo.endsWith("_rev")) { tipo = tipo.replace("_rev", ""); const tmp = from; from = to; to = tmp; }
   }
+  const dup = state.conns.some((c) => c.tipo === tipo && ((c.from === from && c.to === to) || (!TIPOS[tipo].directed && c.from === to && c.to === from)));
+  if (dup) { alert(t("Esa relación ya está registrada con este médico.", "That relationship is already recorded with this physician.")); return; }
   const involvesMe = from === me || to === me;
   const other = byId(from === me ? to : from);
   const estado = (involvesMe && other && other.registrado !== false) ? "pendiente" : "confirmada";
@@ -2622,9 +2766,9 @@ document.getElementById("formContacto").addEventListener("submit", async (ev) =>
   const motivo = document.getElementById("ctMotivo").value;
   if (!MOTIVOS[motivo]) return;
   const detalle = document.getElementById("ctDetalle").value.trim().slice(0, 300);
+  dlgContacto.close();
   const r = await sb.from("contact_requests").insert({ de: me, para: d.id, motivo, detalle, estado: "pendiente" });
   if (r.error) { sbErr(r.error); return; }
-  dlgContacto.close();
   await refresh();
   alert(t("Solicitud enviada. " + d.nombre + " verá tu nombre y el motivo; si acepta, aquí aparecerán sus datos de contacto.", "Request sent. " + d.nombre + " will see your name and reason; if they accept, their contact info will appear here."));
 });
@@ -2638,8 +2782,8 @@ async function resolverContacto(id, estado) {
 }
 function contactoMensaje(d, c) {
   const me = currentUser();
-  return t("Hola Dr(a). " + d.nombre + ", soy " + me.nombre + " (" + me.esp + ", " + me.ciudad + "). Le escribo por MEDNODE; motivo: " + motivoT(c.motivo).toLowerCase() + (c.detalle ? ". " + c.detalle : "") + ".",
-           "Hello Dr. " + d.nombre + ", I am " + me.nombre + " (" + me.esp + ", " + me.ciudad + "). I am writing via MEDNODE; reason: " + motivoT(c.motivo).toLowerCase() + (c.detalle ? ". " + c.detalle : "") + ".");
+  return t("Hola " + d.nombre + ", soy " + me.nombre + " (" + me.esp + ", " + me.ciudad + "). Le escribo por MEDNODE; motivo: " + motivoT(c.motivo).toLowerCase() + (c.detalle ? ". " + c.detalle : "") + ".",
+           "Hello " + d.nombre + ", I am " + me.nombre + " (" + me.esp + ", " + me.ciudad + "). I am writing via MEDNODE; reason: " + motivoT(c.motivo).toLowerCase() + (c.detalle ? ". " + c.detalle : "") + ".");
 }
 function contactoBloque(d) {
   const me = state.session.currentUserId;
@@ -2650,12 +2794,13 @@ function contactoBloque(d) {
     if (d.id !== me && !contactCache[d.id]) {
       // Los datos privados NO viajan con el perfil: se piden al servidor, que verifica el permiso.
       sb.rpc("get_contact", { doc: d.id }).then((r) => {
-        const row = (!r.error && r.data && r.data.length) ? r.data[0] : { email: "", tel: "" };
-        contactCache[d.id] = { email: row.email || "", tel: row.tel || "" };
+        if (r.error) { contactCache[d.id] = { error: true }; }
+        else { const row = (r.data && r.data.length) ? r.data[0] : { email: "", tel: "" }; contactCache[d.id] = { email: row.email || "", tel: row.tel || "" }; }
         if (selectedId === d.id) openProfile(d.id);
       });
       return box("<div style=\"color:#6b7280\">" + t("Cargando datos de contacto...", "Loading contact details...") + "</div>", "#eefbf1", "#bfe6c8");
     }
+    if (d.id !== me && contactCache[d.id] && contactCache[d.id].error) { delete contactCache[d.id]; return box("<div style=\"color:#b03434\">" + t("No se pudieron cargar los datos de contacto. ", "Could not load contact details. ") + "<a onclick=\"openProfile('" + d.id + "')\" style=\"color:#5b50c7;text-decoration:underline;cursor:pointer\">" + t("Reintentar", "Retry") + "</a></div>", "#fff5f5", "#f1c0c0"); }
     if (d.id !== me) { d = Object.assign({}, d, contactCache[d.id]); }
     const tel = (d.tel || "").replace(/[^\d+]/g, "");
     const msg = c ? contactoMensaje(d, c) : "";
@@ -2710,6 +2855,8 @@ function renderUserChip() {
   chip.innerHTML = avatar(d) + "<div style=\"font-size:13px;font-weight:500\">" + esc(shortName(d.nombre)) + "</div>";
 }
 function boot() {
+  try { document.getElementById("btnReporte").style.display = ""; } catch (e) {}
+  setTimeout(pwaMostrar, 2500);
   renderUserChip();
   renderDirectory();
   updatePerfilBadge();
@@ -2719,7 +2866,11 @@ function boot() {
 }
 // ============ ARRANQUE EN LA NUBE ============
 // 1) ¿Hay sesión (enlace mágico)? 2) ¿Tiene perfil? → app. Si no → crear perfil (código / fundador).
+let _starting = false;
 async function startCloud() {
+  if (_starting) return;
+  _starting = true;
+  try {
   onboard.classList.add("show"); obShow("ob-email");
   const { data } = await sb.auth.getSession();
   authUser = data && data.session ? data.session.user : null;
@@ -2731,14 +2882,17 @@ async function startCloud() {
     catch (e) {
       const transitorio = /issued at future|jwt|token/i.test((e && e.message) || "");
       if (transitorio && intento < 4) { await new Promise((r) => setTimeout(r, 2000)); continue; }
-      sbErr(e); return;
+      const m = document.getElementById("obLoginMsg");
+      m.style.color = "#b03434"; m.innerHTML = esc(friendlyErr(e)) + " <a onclick=\"startCloud()\" style=\"color:#5b50c7;text-decoration:underline;cursor:pointer\">" + t("Reintentar", "Retry") + "</a>";
+      return;
     }
   }
   if (tiene) { onboard.classList.remove("show"); boot(); }
   else { document.getElementById("obChooseLead").textContent = t("Entraste como " + authUser.email + ". Ahora crea tu perfil de médico.", "Signed in as " + authUser.email + ". Now create your physician profile."); obShow("ob-choose"); }
+  } finally { _starting = false; }
 }
 sb.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_IN" && session && (!authUser || authUser.id !== session.user.id)) { startCloud(); }
+  if (event === "SIGNED_IN" && session && (!authUser || authUser.id !== session.user.id)) { if (!_starting) startCloud(); }
   if (event === "SIGNED_OUT") { authUser = null; }
 });
 startCloud();
