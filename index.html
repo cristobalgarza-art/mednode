@@ -27,6 +27,7 @@
   header { display: flex; align-items: center; gap: 12px; padding: 11px 18px; background: #fff; border-bottom: 1px solid #e7e9ef; box-shadow: 0 1px 2px rgba(15,18,35,0.03); flex-wrap: wrap; }
   header h1 { font-size: 17px; font-weight: 700; letter-spacing: 1.5px; color: #232634; display: flex; align-items: center; gap: 7px; }
   header h1 span { color: #5b50c7; }
+  #mapLayout aside h3 .gClose { display:none; }
   header h1 .betaTag { color: #8a6d00; background: #fff3c4; border: 1px solid #f1d879; border-radius: 999px; font-size: 10px; letter-spacing: 1px; padding: 1px 7px; margin-left: 4px; font-weight: 600; text-transform: uppercase; }
   #btnReporte { position: fixed; right: 12px; bottom: 12px; z-index: 60; background: #fff; border: 1px solid #e7e9ef; border-radius: 999px; padding: 8px 12px; font-size: 12.5px; color: #3a3f4d; box-shadow: 0 4px 14px rgba(15,18,35,0.12); cursor: pointer; font-family: inherit; }
   .grow { flex: 1; }
@@ -287,6 +288,7 @@
     .btn.small { padding:9px 14px; font-size:14px; }
     .chip { padding:7px 12px; font-size:13px; }
     #panelClose, .gClose { padding:10px; font-size:20px; }
+    #mapLayout aside h3 .gClose { display:inline-block; }
     .connItem .del { display:inline-block; padding:8px 0; font-size:13px; }
     .obBack { padding:8px 0; font-size:14px; }
     .demoLink a { display:inline-block; padding:10px; }
@@ -1010,6 +1012,7 @@ function pwaMostrar() {
   if (PWA_STANDALONE) return;
   try { if (localStorage.getItem("mednode_pwa_no") === "1") return; } catch (e) {}
   if (!currentUser()) return;            // solo ya adentro
+  if (!/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) return;   // solo en celular/tablet
   const b = document.getElementById("pwaBanner"), tx = document.getElementById("pwaTxt"), ib = document.getElementById("pwaInstallBtn");
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
   const android = /Android/.test(navigator.userAgent);
