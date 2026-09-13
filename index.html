@@ -258,6 +258,10 @@
     .obBack { padding:8px 0; font-size:14px; }
     .demoLink a { display:inline-block; padding:10px; }
     header .btn.primary { padding:7px 10px; font-size:13px; }
+    .soloEscritorio { display:none; }
+    header h1 .betaTag { display:none; }
+    header { flex-wrap:nowrap; }
+    #langBtn { padding:5px 8px; }
     .mapTools > strong { display:none; }
     .solRow { flex-wrap:wrap; }
     .solRow .solBtns { flex-basis:100%; display:flex; gap:8px; margin-top:6px; }
@@ -377,7 +381,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
   <h1><svg width="22" height="22" viewBox="0 0 24 24"><path d="M8 16 L16 8 M9 18 L15 18" stroke="#b9b3e8" stroke-width="1.8" fill="none"/><circle cx="6" cy="18" r="3.4" fill="#5b50c7"/><circle cx="18" cy="6" r="3.4" fill="#1D9E75"/><circle cx="18" cy="18" r="2.6" fill="#D85A30"/></svg>MED<span>NODE</span><span class="betaTag" title="Versión de prueba">beta</span></h1>
   <div class="grow"></div>
   <button class="btn small" id="langBtn" title="Cambiar idioma / Switch language" onclick="toggleLang()">EN</button>
-  <button class="btn primary" onclick="openInviteDlg()">＋ Invitar colega</button>
+  <button class="btn primary" onclick="openInviteDlg()">＋ Invitar<span class="soloEscritorio"> colega</span></button>
   <div class="userChip" onclick="setTab('perfil')" id="userChip"></div>
 </header>
 
@@ -709,7 +713,7 @@ const DICT = {
   "Solo números, ej. 1234567": "Numbers only, e.g. 1234567",
   "Crear mi perfil y entrar": "Create my profile and enter",
   // Header / tabs
-  "＋ Invitar colega": "＋ Invite colleague", "Genealogía": "Genealogy", "Directorio": "Directory", "Mi perfil": "My profile",
+  "＋ Invitar colega": "＋ Invite colleague", "＋ Invitar": "＋ Invite", "colega": "colleague", "Genealogía": "Genealogy", "Directorio": "Directory", "Mi perfil": "My profile",
   // Directory
   "Directorio de médicos": "Physician directory",
   "Encuentra colegas por especialidad, estado o institución. Toca una tarjeta para ver el perfil.": "Find colleagues by specialty, state or institution. Tap a card to see the profile.",
