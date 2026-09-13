@@ -311,8 +311,10 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
   <div class="obCard">
     <h2><svg width="26" height="26" viewBox="0 0 24 24"><path d="M8 16 L16 8 M9 18 L15 18" stroke="#b9b3e8" stroke-width="1.8" fill="none"/><circle cx="6" cy="18" r="3.4" fill="#5b50c7"/><circle cx="18" cy="6" r="3.4" fill="#1D9E75"/><circle cx="18" cy="18" r="2.6" fill="#D85A30"/></svg>MED<span>NODE</span></h2>
 
+    <div id="obStepInd" style="font-size:12px;color:#8a919c;letter-spacing:.5px;margin:-2px 0 10px"></div>
     <!-- Step 0: correo (enlace mágico, sin contraseñas) -->
     <div class="obStep active" id="ob-email">
+      <div id="obInviteBanner" style="display:none;background:#eef2ff;border:1px solid #c7d0f5;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:14px"></div>
       <p class="tagline">La red profesional de médicos, por invitación.</p>
       <p class="hint" style="margin:0 0 10px" id="obPasos"><b>Paso 1:</b> entra con tu correo (te enviamos un código, sin contraseñas). <b>Paso 2:</b> ya adentro, escribes tu código de invitación MED-…</p>
       <label class="obLabel">Tu correo</label>
@@ -400,7 +402,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
       <input id="obCedula" inputmode="numeric" placeholder="Solo números, ej. 1234567">
       <label class="chkline" style="margin-top:12px;align-items:flex-start"><input type="checkbox" id="obPriv" style="margin-top:2px"> <span>He leído y acepto el <a onclick="event.preventDefault();event.stopPropagation();openPriv()" style="color:#5b50c7;cursor:pointer;text-decoration:underline">Aviso de privacidad</a></span></label>
       <div class="obMsg" id="obProfMsg"></div>
-      <button class="btn primary" style="width:100%;margin-top:10px" onclick="obCreateProfile()">Crear mi perfil y entrar</button>
+      <button class="btn primary" id="btnCrearPerfil" style="width:100%;margin-top:10px" onclick="obCreateProfile()">Crear mi perfil y entrar</button>
     </div>
   </div>
 </div>
@@ -658,9 +660,9 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
 
 <dialog id="dlgInvite">
   <h3>Invitar a un colega</h3>
-  <p class="dlgsub">MEDNODE crece por invitación: la confianza viene de la cadena de colegas. Comparte este código con quien quieras invitar.</p>
+  <p class="dlgsub">MEDNODE crece por invitación: la confianza viene de la cadena de colegas. Manda el enlace por WhatsApp; el código ya va dentro, tu colega no tiene que escribir nada.</p>
   <div class="codeBox" id="inviteCode">—</div>
-  <p class="dlgsub" id="inviteHelp">Este código sirve para una persona. Ella lo escribe al entrar por primera vez.</p>
+  <p class="dlgsub" id="inviteHelp">El enlace sirve para una persona.</p>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
     <button class="btn" style="background:#25D366;border-color:#25D366;color:#fff;flex:1;min-width:120px" onclick="shareInvite('wa')">WhatsApp</button>
     <button class="btn" style="flex:1;min-width:120px" onclick="shareInvite('mail')">Enviar por correo</button>
@@ -1144,6 +1146,32 @@ function obShow(id) {
   document.querySelectorAll(".obStep").forEach((s) => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
   if (id === "ob-choose") refreshOnboardOptions();
+  const ind = { "ob-email": 1, "ob-choose": 2, "ob-code": 2, "ob-profile": 3 }[id];
+  const el = document.getElementById("obStepInd");
+  if (el) el.textContent = ind ? t("Paso " + ind + " de 3", "Step " + ind + " of 3") : "";
+  try { const card = document.querySelector(".obCard"); if (card) card.scrollTop = 0; } catch (e) {}
+}
+/* ===== Invitación dentro del enlace: mednode.net/?i=MED-XXXXX → el médico no escribe ni elige nada ===== */
+function inviteFromUrl() {
+  try {
+    const q = new URLSearchParams(location.search), hp = new URLSearchParams((location.hash || "").replace(/^#/, ""));
+    const c = (q.get("i") || hp.get("i") || "").trim().toUpperCase();
+    if (c) { localStorage.setItem("mednode_invite", c); history.replaceState(null, "", location.pathname); }
+  } catch (e) {}
+  try { return localStorage.getItem("mednode_invite") || ""; } catch (e) { return ""; }
+}
+function clearInvite() { try { localStorage.removeItem("mednode_invite"); } catch (e) {} }
+async function showInviteBanner() {
+  const code = inviteFromUrl(); const b = document.getElementById("obInviteBanner"), pasos = document.getElementById("obPasos");
+  if (!code || !b) return;
+  b.style.display = "block"; b.innerHTML = t("Tienes una invitación a MEDNODE. Entra con tu correo para continuar.", "You have an invitation to MEDNODE. Sign in with your email to continue.");
+  if (pasos) pasos.style.display = "none";
+  try {
+    const r = await sb.rpc("peek_invite", { p_code: code });
+    const inv = (!r.error && r.data && r.data.length) ? r.data[0] : null;
+    if (inv) b.innerHTML = "<b>" + esc(inv.inviter_nombre) + "</b> " + t("te invita a MEDNODE", "invites you to MEDNODE") + (inv.para_nombre ? " " + t("como", "as") + " <b>" + esc(inv.para_nombre) + "</b>" : "") + ".<br><span style=\"color:#4b5563\">" + t("Entra con tu correo para continuar.", "Sign in with your email to continue.") + "</span>";
+    else if (!r.error) { clearInvite(); b.style.display = "none"; if (pasos) pasos.style.display = ""; }
+  } catch (e) {}
 }
 async function refreshOnboardOptions() {
   // "Soy el fundador" solo si la red está vacía (la primerísima vez).
@@ -1203,6 +1231,7 @@ function obGoInvite() { document.getElementById("obCodeMsg").textContent = ""; o
 function obGoFounder() {
   obInviteCode = null;
   document.getElementById("obProfLead").textContent = t("Eres el primer miembro. Crea tu perfil de fundador.", "You are the first member. Create your founder profile.");
+  const bc0 = document.getElementById("btnCrearPerfil"); if (bc0) bc0.textContent = t("Crear mi perfil y entrar", "Create my profile and enter");
   document.getElementById("obRelWrap").style.display = "none";
   document.getElementById("obProfBack").onclick = () => obShow("ob-choose");
   document.getElementById("obEmail").value = authUser ? authUser.email : "";
@@ -1214,9 +1243,9 @@ async function obCheckCode() {
   if (!code) { msg.style.color = "#b03434"; msg.textContent = t("Escribe el código.", "Enter the code."); return; }
   msg.style.color = "#0f6e56"; msg.textContent = t("Verificando...", "Checking...");
   const r = await sb.rpc("peek_invite", { p_code: code });
-  if (r.error) { msg.style.color = "#b03434"; msg.textContent = t("Sin conexión con el servidor. Revisa tu internet e intenta de nuevo.", "Could not reach the server. Check your internet and try again."); return; }
+  if (r.error) { msg.style.color = "#b03434"; msg.textContent = t("Sin conexión con el servidor. Revisa tu internet e intenta de nuevo.", "Could not reach the server. Check your internet and try again."); return false; }
   const inv = (r.data && r.data.length) ? r.data[0] : null;
-  if (!inv) { msg.style.color = "#b03434"; msg.textContent = t("Código inválido o ya usado. Pídele otro a tu colega.", "Invalid or already used code. Ask your colleague for another one."); return; }
+  if (!inv) { msg.style.color = "#b03434"; msg.textContent = t("Código inválido o ya usado. Pídele otro a tu colega.", "Invalid or already used code. Ask your colleague for another one."); clearInvite(); return false; }
   msg.textContent = "";
   ["obNombre", "obEsp", "obSub", "obInst", "obCiudad", "obEstado"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
   document.getElementById("obPais").value = "México";
@@ -1231,12 +1260,14 @@ async function obCheckCode() {
     document.getElementById("obCiudad").value = inv.para_ciudad || "";
     document.getElementById("obEstado").value = inv.para_estado || "";
     document.getElementById("obPais").value = inv.para_pais || "México";
-    document.getElementById("obProfLead").textContent = t("Este código es para el perfil de " + inv.para_nombre + ", creado por " + inv.inviter_nombre + ". Confirma y completa tus datos para reclamarlo.", "This code is for the profile of " + inv.para_nombre + ", created by " + inv.inviter_nombre + ". Confirm and complete your details to claim it.");
+    document.getElementById("obProfLead").innerHTML = t("¿Eres <b>" + esc(inv.para_nombre) + "</b>? " + esc(inv.inviter_nombre) + " ya creó tu perfil. Revisa que todo esté bien, agrega tu cédula y listo.", "Are you <b>" + esc(inv.para_nombre) + "</b>? " + esc(inv.inviter_nombre) + " already created your profile. Check it, add your license number and you're in.");
   }
+  const bc = document.getElementById("btnCrearPerfil"); if (bc) bc.textContent = inv.para_nombre ? t("Sí, soy yo — entrar a MEDNODE", "Yes, that's me — enter MEDNODE") : t("Crear mi perfil y entrar", "Create my profile and enter");
   document.getElementById("obRelLabel").textContent = t("¿Qué es de ti " + inv.inviter_nombre + "?", "How is " + inv.inviter_nombre + " related to you?");
   document.getElementById("obRelWrap").style.display = "block"; // si ya existía relación, el servidor no la duplica
   document.getElementById("obProfBack").onclick = () => obShow("ob-code");
   obShow("ob-profile");
+  return true;
 }
 let _creating = false;
 async function obCreateProfile() {
@@ -1272,6 +1303,7 @@ async function obCreateProfile() {
   });
   if (r.error) { msg.style.color = "#b03434"; msg.textContent = friendlyErr(r.error); return; }
   try { await cloudLoad(); } catch (e) { sbErr(e); return; }
+  clearInvite();
   onboard.classList.remove("show");
   boot();
   if (ubicAprox) setTimeout(() => alert(t("No encontramos la ciudad \"" + ciudad + "\" en el mapa; te ubicamos en el centro de " + pais + ". Puedes corregirlo en Mi perfil → Editar.", "We couldn't find the city \"" + ciudad + "\" on the map; we placed you at the center of " + pais + ". You can fix it in My profile → Edit.")), 400);
@@ -1622,7 +1654,7 @@ async function openInviteDlg(forDocId) {
   document.getElementById("inviteCode").textContent = code;
   document.getElementById("inviteHelp").textContent = (target && target.registrado === false)
     ? t("Este código es exclusivo para " + target.nombre + ": al usarlo, reclamará su perfil con todas sus conexiones.", "This code is exclusively for " + target.nombre + ": when used, they will claim their profile with all its connections.")
-    : tr("Este código sirve para una persona. Ella lo escribe al entrar por primera vez.");
+    : t("El enlace sirve para una persona: al abrirlo, entra con su correo y su perfil queda ligado a ti.", "The link is for one person: they open it, sign in with their email, and their profile is linked to you.");
   dlgInvite.showModal();
 }
 const APP_URL = window.location.origin + window.location.pathname; // dirección del sitio: se incluye en las invitaciones
@@ -1630,10 +1662,10 @@ let inviteActual = null;
 function inviteMessage() {
   const me = currentUser(), code = inviteActual ? inviteActual.code : "", tg = inviteActual ? inviteActual.target : null;
   const saludo = tg ? (lang === "en" ? "Hi " + tg.nombre + "," : "Hola " + tg.nombre + ",") : (lang === "en" ? "Hi," : "Hola,");
-  const link = APP_URL ? (lang === "en" ? "\nEnter here: " + APP_URL : "\nEntra aquí: " + APP_URL) : "";
+  const link = APP_URL + "?i=" + encodeURIComponent(code);
   return lang === "en"
-    ? saludo + " I'd like to invite you to MEDNODE, the invitation-only professional network for physicians where we map our medical genealogy (who trained whom, who we've worked with).\n\nYour invitation code is: " + code + link + "\n\nWhen you open it: 1) sign in with your email (you'll get an access code), 2) choose \"I have an invitation code\" and enter yours." + (tg ? " Your profile is already created — you just confirm your details." : "") + "\n\n— " + (me ? me.nombre : "")
-    : saludo + " te invito a MEDNODE, la red profesional de médicos por invitación donde mapeamos nuestra genealogía médica (quién formó a quién, con quién hemos trabajado).\n\nTu código de invitación es: " + code + link + "\n\nAl abrirlo: 1) entra con tu correo (te llega un código de acceso), 2) elige \"Tengo un código de invitación\" y escribe el tuyo." + (tg ? " Tu perfil ya está creado — solo confirmas tus datos." : "") + "\n\n— " + (me ? me.nombre : "");
+    ? saludo + " I'm inviting you to MEDNODE, the invitation-only network for physicians (who trained whom, who works with whom).\nEnter here: " + link + "\n— " + (me ? me.nombre : "")
+    : saludo + " te invito a MEDNODE, la red de médicos por invitación (quién formó a quién, quién trabaja con quién).\nEntra aquí: " + link + "\n— " + (me ? me.nombre : "");
 }
 function shareInvite(kind) {
   if (!inviteActual) return;
@@ -2890,14 +2922,19 @@ async function startCloud() {
       return;
     }
   }
-  if (tiene) { onboard.classList.remove("show"); boot(); }
-  else { document.getElementById("obChooseLead").textContent = t("Entraste como " + authUser.email + ". Ahora crea tu perfil de médico.", "Signed in as " + authUser.email + ". Now create your physician profile."); obShow("ob-choose"); }
+  if (tiene) { onboard.classList.remove("show"); boot(); clearInvite(); }
+  else {
+    const pend = inviteFromUrl();
+    if (pend) { document.getElementById("obCodeInput").value = pend; const ok = await obCheckCode(); if (ok) return; }
+    document.getElementById("obChooseLead").textContent = t("Entraste como " + authUser.email + ". Ahora crea tu perfil de médico.", "Signed in as " + authUser.email + ". Now create your physician profile."); obShow("ob-choose");
+  }
   } finally { _starting = false; }
 }
 sb.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_IN" && session && (!authUser || authUser.id !== session.user.id)) { if (!_starting) startCloud(); }
   if (event === "SIGNED_OUT") { authUser = null; }
 });
+showInviteBanner();
 startCloud();
 // Refresco automático cada 60 s para ver solicitudes y confirmaciones de los demás
 setInterval(() => { if (authUser && currentUser() && document.visibilityState === "visible") refresh(); }, 60000);
