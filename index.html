@@ -1201,7 +1201,7 @@ function friendlyErr(e) {
 }
 async function logout() {
   try { dlgMenu.close(); } catch (e) {}
-  try { await sb.auth.signOut(); } catch (e) {}
+  try { await sb.auth.signOut({ scope: "local" }); } catch (e) {} // solo este dispositivo: no cierra la sesión del celular/computadora del mismo médico
   authUser = null; state.session.currentUserId = null; state.doctors = []; state.conns = []; state.invites = []; state.contactos = [];
   for (const k in contactCache) delete contactCache[k];
   try { closePanel(); } catch (e) {}
