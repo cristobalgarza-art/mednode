@@ -248,7 +248,7 @@
   @media (max-width: 768px) {
     header { padding:10px 12px; gap:8px; }
     header h1 { font-size:16px; }
-    .userChip div { display:none; }
+    .userChip > div:not(.avatar) { display:none; }
     nav.tabs { padding:0 8px; overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; }
     nav.tabs button { padding:11px 12px; font-size:13.5px; white-space:nowrap; }
     .wrap { padding:16px 14px 60px; }
@@ -690,10 +690,10 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
 </dialog>
 
 <dialog id="dlgMenu">
-  <h3>Cuenta y datos</h3>
+  <h3>Mi cuenta</h3>
   <p class="dlgsub" id="menuWho"></p>
   <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
-    <button class="btn" onclick="exportData()">Exportar respaldo (.json)</button>
+    <button class="btn" onclick="exportData()">Descargar copia de mis datos (.json)</button>
     <button class="btn" onclick="logout()">Cerrar sesión</button>
   </div>
   <div class="dlgBtns"><button class="btn primary" onclick="dlgMenu.close()">Cerrar</button></div>
@@ -823,7 +823,7 @@ const DICT = {
   "+ Conexión": "+ Connection", "Editar": "Edit", "Eliminar": "Delete",
   "○ No registrado — invítalo para que reclame su perfil": "○ Not registered — invite them to claim their profile",
   "Ubicación": "Location", "Correo": "Email", "Bio": "Bio", "Busca entrar a": "Seeking to enter", "Colegas que invité": "Colleagues I invited",
-  "Último respaldo": "Last backup", "Editar mi perfil": "Edit my profile", "Ver mi red en el mapa": "See my network on the map", "Cuenta y respaldo": "Account & backup",
+  "Último respaldo": "Last backup", "Editar mi perfil": "Edit my profile", "Ver mi red en el mapa": "See my network on the map", "Mi cuenta": "My account", "Descargar copia de mis datos (.json)": "Download a copy of my data (.json)",
   "Exportar respaldo": "Export backup", "¿Es cierto?": "Is this true?", "Aceptar": "Accept", "Rechazar": "Decline",
   "nunca — tus datos viven solo en este navegador": "never — your data lives only in this browser",
   "(cédula profesional general, no la de especialidad · la verificación automática vendrá después)": "(general professional license, not the specialty one · automatic verification will come later)",
@@ -1464,12 +1464,12 @@ function renderMyProfile() {
     "<div class=\"infoRow\"><div class=\"k\">Conexiones</div><div class=\"v\">" + rel.length + t(" en la red", " in the network") + "</div></div>" +
     (d.buscaEntrar ? "<div class=\"infoRow\"><div class=\"k\">Busca entrar a</div><div class=\"v\">" + esc(d.buscaEntrar) + "</div></div>" : "") +
     "<div class=\"infoRow\"><div class=\"k\">Colegas que invité</div><div class=\"v\">" + invitados.length + t(" se unieron · ", " joined · ") + usados + t(" de ", " of ") + misInvites.length + t(" códigos usados", " codes used") + "</div></div>" +
-    "<div class=\"infoRow\"><div class=\"k\">Último respaldo</div><div class=\"v\">" + (state.session.lastExport ? timeAgo(new Date(state.session.lastExport).toISOString()) : "<span style=\"color:#b03434\">nunca — tus datos viven solo en este navegador</span>") + " <button class=\"btn small\" style=\"margin-left:8px\" onclick=\"exportData()\">Exportar respaldo</button></div></div>" +
+    "<div class=\"infoRow\"><div class=\"k\">" + t("Tus datos", "Your data") + "</div><div class=\"v\">" + t("Guardados en la nube de MEDNODE; puedes entrar desde cualquier dispositivo con tu correo.", "Stored in the MEDNODE cloud; you can sign in from any device with your email.") + "</div></div>" +
     "<div style=\"margin-top:22px;display:flex;gap:10px;flex-wrap:wrap\">" +
       "<button class=\"btn primary\" onclick=\"openDoctorDlg('" + d.id + "')\">Editar mi perfil</button>" +
       "<button class=\"btn\" onclick=\"openInviteDlg()\">＋ Invitar colega</button>" +
       "<button class=\"btn\" onclick=\"viewDoctor('" + d.id + "')\">Ver mi red en el mapa</button>" +
-      "<button class=\"btn\" onclick=\"openMenu()\">Cuenta y respaldo</button>" +
+      "<button class=\"btn\" onclick=\"openMenu()\">Mi cuenta</button>" +
     "</div>";
 }
 
