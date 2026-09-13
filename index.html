@@ -873,7 +873,7 @@ let _ultimoError = "";
 function sbErr(e, ctx) { console.error(ctx, e); _ultimoError = (ctx ? ctx + ": " : "") + ((e && e.message) || String(e)); alert((ctx ? ctx + ": " : "") + friendlyErr(e)); }
 window.addEventListener("error", (ev) => { try { _ultimoError = (ev.message || "") + " @" + (ev.lineno || ""); } catch (e) {} });
 window.addEventListener("unhandledrejection", (ev) => { try { _ultimoError = (ev.reason && ev.reason.message) || String(ev.reason); } catch (e) {} });
-const REPORTE_WA = ""; // WhatsApp del fundador para reportes (con lada, ej. 52878...). Vacío = se usa el correo.
+const REPORTE_WA = "525529535089"; // WhatsApp del fundador para reportes (52 + 10 dígitos). Vacío = se usa el correo.
 const REPORTE_MAIL = "cristobal.garza@gmail.com";
 function reportarProblema() {
   const me = currentUser();
