@@ -73,35 +73,8 @@
   .empty { text-align: center; color: #9aa0ad; padding: 50px 20px; font-size: 14px; }
 
   /* Wall */
-  .composer { background: #fff; border: 1px solid #e7e9ef; border-radius: 14px; padding: 16px; margin-bottom: 20px; }
-  .composer .kinds { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-  .kindChip { padding: 6px 12px; border: 1px solid #d8dce4; border-radius: 999px; font-size: 12.5px; cursor: pointer; background: #fff; color: #3a3f4d; user-select: none; }
-  .kindChip.active { background: #5b50c7; border-color: #5b50c7; color: #fff; }
-  .composer input.title, .composer textarea { width: 100%; border: 1px solid #d8dce4; border-radius: 10px; padding: 10px 12px; font-size: 14px; font-family: inherit; margin-bottom: 10px; }
-  .composer textarea { resize: vertical; min-height: 70px; }
-  .composer .row2 { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   .chkline { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #6b7280; cursor: pointer; }
   .chkline input { width: 16px; height: 16px; accent-color: #5b50c7; }
-  .post { background: #fff; border: 1px solid #e7e9ef; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
-  .post .head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .post .who { font-weight: 600; font-size: 14px; }
-  .post .when { font-size: 12px; color: #9aa0ad; }
-  .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 999px; margin-left: auto; }
-  .tag.caso { background: #eef0ff; color: #4a40ad; }
-  .tag.equipo { background: #fff0e8; color: #b8531f; }
-  .tag.referencia { background: #e7f7ef; color: #0f8a5f; }
-  .tag.general { background: #eef0f3; color: #5a6470; }
-  .post .ttl { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
-  .post .body { font-size: 14px; color: #333; line-height: 1.55; white-space: pre-wrap; }
-  .post .actions { display: flex; gap: 14px; margin-top: 10px; font-size: 12.5px; color: #6b7280; }
-  .post .actions a { cursor: pointer; }
-  .post .actions a:hover { color: #5b50c7; }
-  .comments { margin-top: 12px; border-top: 1px solid #eef0f3; padding-top: 10px; }
-  .comment { font-size: 13px; margin: 8px 0; }
-  .comment b { color: #3a3f4d; }
-  .comment .ct { color: #333; }
-  .commentBox { display: flex; gap: 8px; margin-top: 8px; }
-  .commentBox input { flex: 1; border: 1px solid #d8dce4; border-radius: 999px; padding: 7px 12px; font-size: 13px; font-family: inherit; }
 
   /* Mi perfil */
   .profileHead { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
@@ -152,14 +125,6 @@
   #panelClose { position: absolute; top: 8px; right: 10px; border: none; background: none; font-size: 17px; cursor: pointer; color: #767f8a; }
   #loadErr { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 30px; font-size: 14.5px; color: #5a6470; background: #eef0f3; }
 
-  /* Buzón / Encuestas */
-  .notif { display:flex; gap:12px; align-items:flex-start; background:#fff; border:1px solid #e7e9ef; border-radius:12px; padding:12px 14px; margin-bottom:10px; }
-  .notif.unread { border-left:4px solid #5b50c7; background:#faf9ff; }
-  .notif .nicon { font-size:18px; line-height:1.3; }
-  .notif .ntext { font-size:14px; color:#232634; }
-  .notif .nwhen { font-size:12px; color:#9aa0ad; margin-top:2px; }
-  .walletBanner { background:#e7f7ef; border:1px solid #bfe8d4; border-radius:12px; padding:12px 16px; font-size:15px; color:#0f6e56; margin-bottom:18px; }
-  .walletBanner b { font-size:18px; }
   .rutaStep { background:#f3f2fb; border-radius:9px; padding:8px 12px; font-size:13.5px; }
   .rutaArrow { font-size:12px; color:#5b50c7; margin:5px 0 5px 14px; }
   ul.linaje { list-style:none; margin:4px 0 4px 4px; padding-left:14px; border-left:2px solid #e7e9ef; }
@@ -440,68 +405,6 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
     </div>
   </section>
 
-  <!-- MURO -->
-  <section class="tab" id="tab-muro">
-    <div class="wrap">
-      <h2 class="sec">Muro de colaboración</h2>
-      <p class="lead">Comparte casos, arma tu equipo de quirófano o refiere pacientes con colegas verificados.</p>
-      <div class="composer">
-        <div class="kinds" id="postKinds"></div>
-        <input class="title" id="postTitle" placeholder="Título (ej. Busco anestesiólogo — sábado, Hospital Satélite)">
-        <textarea id="postBody" placeholder="Escribe los detalles..."></textarea>
-        <div class="row2">
-          <label class="chkline"><input type="checkbox" id="postAnon"> Publicar de forma anónima</label>
-          <button class="btn primary" onclick="submitPost()">Publicar</button>
-        </div>
-      </div>
-      <div id="wallList"></div>
-    </div>
-  </section>
-
-  <!-- BUZON -->
-  <section class="tab" id="tab-buzon">
-    <div class="wrap">
-      <h2 class="sec">Buzón</h2>
-      <p class="lead">Lo que pasa en tu red: comentarios a tus publicaciones, invitaciones y colegas que se unen.</p>
-      <div id="buzonList"></div>
-    </div>
-  </section>
-
-  <!-- CURSOS Y CONGRESOS -->
-  <section class="tab" id="tab-cursos">
-    <div class="wrap">
-      <h2 class="sec">Cursos y congresos</h2>
-      <p class="lead">Eventos y cursos con constancia (CME). Marca "me interesa" para que el organizador te tome en cuenta.</p>
-      <div class="composer">
-        <div class="row2" style="margin-bottom:10px"><strong style="font-size:14px;color:#3a3f4d">Publicar un evento</strong></div>
-        <div class="twoCol" style="gap:10px;margin-bottom:10px">
-          <select id="evTipo" style="padding:10px 12px;border:1px solid #d8dce4;border-radius:10px;font-size:14px"><option value="curso">Curso</option><option value="congreso">Congreso</option></select>
-          <input id="evFecha" placeholder="Fecha (ej. 12–14 Nov 2026)" style="border:1px solid #d8dce4;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit">
-        </div>
-        <input class="title" id="evTitulo" placeholder="Título del evento">
-        <div class="twoCol" style="gap:10px">
-          <input id="evOrg" placeholder="Organizador" style="border:1px solid #d8dce4;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit">
-          <input id="evLugar" placeholder="Lugar (o 'En línea')" style="border:1px solid #d8dce4;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit">
-        </div>
-        <div class="row2" style="margin-top:12px">
-          <label class="chkline"><input type="checkbox" id="evCme"> Otorga constancia / CME</label>
-          <button class="btn primary" onclick="submitEvento()">Publicar evento</button>
-        </div>
-      </div>
-      <div class="cardGrid" id="cursosGrid"></div>
-    </div>
-  </section>
-
-  <!-- ENCUESTAS (demo) -->
-  <section class="tab" id="tab-encuestas">
-    <div class="wrap">
-      <h2 class="sec">Encuestas <span style="font-size:13px;color:#b8801f;font-weight:600">· demo</span></h2>
-      <p class="lead">Así se ve el modelo de Doximity/Sermo: las farmacéuticas pagan por la opinión del médico. En esta versión demo el dinero es de ejemplo.</p>
-      <div class="walletBanner">Monedero (demo): <b id="walletDemo">$0 MXN</b></div>
-      <div id="encList"></div>
-    </div>
-  </section>
-
   <!-- GENEALOGIA (mapa) -->
   <section class="tab flex active" id="tab-genealogia">
     <div id="genWrap" style="display:flex;flex-direction:column;width:100%;flex:1;min-height:0;height:100%;">
@@ -709,15 +612,6 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
   <div class="dlgBtns"><button class="btn primary" onclick="dlgRuta.close()">Cerrar</button></div>
 </dialog>
 
-<dialog id="dlgEncuesta">
-  <h3 id="encTitle">Encuesta</h3>
-  <p class="dlgsub">Responde para ganar <b>$<span id="encPago">0</span> MXN</b> (demo).</p>
-  <div id="encBody"></div>
-  <div class="dlgBtns">
-    <button class="btn" onclick="dlgEncuesta.close()">Cancelar</button>
-    <button class="btn primary" onclick="submitEncuesta()">Enviar respuestas</button>
-  </div>
-</dialog>
 
 <div id="pwaBanner" style="display:none;position:fixed;left:12px;right:12px;bottom:56px;z-index:61;background:#fff;border:1px solid #e7e9ef;border-radius:14px;padding:12px 14px;box-shadow:0 8px 28px rgba(15,18,35,0.18);font-size:13.5px">
   <div style="display:flex;gap:10px;align-items:flex-start">
@@ -756,12 +650,6 @@ const TIPOS = {
   amistad:  { label: "Colega / amistad", color: "#D4537E" },
   conocido: { label: "Se conocen (sin trabajar juntos)", color: "#888780", dash: true }
 };
-const KINDS = {
-  caso:       { label: "Caso clínico" },
-  equipo:     { label: "Busco equipo de quirófano" },
-  referencia: { label: "Referencia de paciente" },
-  general:    { label: "General" }
-};
 const ESP_COLORS = ["#534AB7","#0F6E56","#993C1D","#993556","#185FA5","#3B6D11","#854F0B","#A32D2D","#5F5E5A"];
 /* ============ IDIOMA (ES / EN) ============ */
 let lang = "es";
@@ -772,8 +660,7 @@ const DICT = {
   "Un colega ya en MEDNODE te compartió un código. Úsalo para crear tu perfil.": "A colleague already on MEDNODE shared a code with you. Use it to create your profile.",
   "Soy el fundador (primera vez)": "I am the founder (first time)",
   "Aún no hay nadie. Crea el primer perfil y empieza a invitar a tus colegas.": "Nobody is here yet. Create the first profile and start inviting colleagues.",
-  "Explorar con datos de ejemplo →": "Explore with sample data →",
-  "← Volver": "← Back",
+    "← Volver": "← Back",
   "Escribe el código de invitación que te compartieron.": "Enter the invitation code you were given.",
   "¿Ya tienes el código del correo? Escríbelo aquí": "Already have the code from the email? Type it here",
   "Tu correo": "Your email", "Enviarme mi código de acceso": "Send me my access code", "Entrar": "Sign in",
@@ -864,17 +751,16 @@ const DICT = {
   "Invitar a un colega": "Invite a colleague",
   "MEDNODE crece por invitación: la confianza viene de la cadena de colegas. Comparte este código con quien quieras invitar.": "MEDNODE grows by invitation: trust comes from the chain of colleagues. Share this code with whoever you want to invite.",
   "Este código sirve para una persona. Ella lo escribe al entrar por primera vez.": "This code works for one person. They enter it when they first sign in.",
-  "Copiar código": "Copy code", "Listo": "Done", "Cuenta y datos": "Account & data", "Exportar respaldo (.json)": "Export backup (.json)",
-  "Importar respaldo": "Import backup", "Reiniciar con datos de ejemplo": "Reset to sample data", "Cerrar sesión": "Sign out", "Cerrar": "Close",
+  "Copiar código": "Copy code", "Listo": "Done", 
+  "Cerrar sesión": "Sign out", "Cerrar": "Close",
   // Profile panel / my profile
   "Institución:": "Institution:", "Formación:": "Training:", "Correo:": "Email:", "Conexiones": "Connections", "eliminar": "remove",
   "Sin conexiones de este tipo.": "No connections of this type.", "¿Cómo llego?": "How do I reach them?", "Linaje académico": "Academic lineage",
   "+ Conexión": "+ Connection", "Editar": "Edit", "Eliminar": "Delete",
   "○ No registrado — invítalo para que reclame su perfil": "○ Not registered — invite them to claim their profile",
   "Ubicación": "Location", "Correo": "Email", "Bio": "Bio", "Busca entrar a": "Seeking to enter", "Colegas que invité": "Colleagues I invited",
-  "Último respaldo": "Last backup", "Editar mi perfil": "Edit my profile", "Ver mi red en el mapa": "See my network on the map", "Mi cuenta": "My account", "Descargar copia de mis datos (.json)": "Download a copy of my data (.json)",
-  "Exportar respaldo": "Export backup", "¿Es cierto?": "Is this true?", "Aceptar": "Accept", "Rechazar": "Decline",
-  "nunca — tus datos viven solo en este navegador": "never — your data lives only in this browser",
+  "Editar mi perfil": "Edit my profile", "Ver mi red en el mapa": "See my network on the map", "Mi cuenta": "My account", "Descargar copia de mis datos (.json)": "Download a copy of my data (.json)",
+  "¿Es cierto?": "Is this true?", "Aceptar": "Accept", "Rechazar": "Decline",
   "(cédula profesional general, no la de especialidad · la verificación automática vendrá después)": "(general professional license, not the specialty one · automatic verification will come later)",
   "Sus maestros (de quién aprendió)": "Their mentors (who trained them)", "Sin maestros registrados.": "No mentors recorded.",
   "Sus alumnos (a quién ha formado)": "Their trainees (whom they trained)", "Sin alumnos registrados.": "No trainees recorded.",
@@ -966,7 +852,6 @@ function setLang(l) {
 }
 
 const COMMON_ESP = ["Medicina general","Medicina familiar","Cirugía general","Cirugía plástica","Cirugía bariátrica","Anestesiología","Cardiología","Ginecología y obstetricia","Pediatría","Medicina interna","Traumatología y ortopedia","Urología","Oftalmología","Otorrinolaringología","Dermatología","Neurología","Neurocirugía","Gastroenterología","Endocrinología","Oncología","Radiología","Urgencias","Nutrición clínica","Psiquiatría"];
-const STORE_KEY = "mednode_mvp_v8";
 
 
 /* ============ NUBE (Supabase) ============ */
@@ -1049,23 +934,18 @@ async function cloudLoad() {
     if (mine.data) { me = rowToDoc(mine.data); const idx = docs.findIndex((x) => x.id === me.id); if (idx >= 0) docs[idx] = me; else docs.push(me); }
   }
   state = normalize({ doctors: docs, conns: c.data.map(rowToConn).filter((x) => TIPOS[x.tipo]), invites: i.data.map(rowToInvite), contactos: k.data.map(rowToContact),
-    posts: [], eventos: [], encuestas: [],
-    session: { currentUserId: me ? me.id : null, lastSeenBuzon: 0, lang: prefs.lang || "es", hideGuia: !!prefs.hideGuia, lastExport: prefs.lastExport || null } });
+    session: { currentUserId: me ? me.id : null, lang: prefs.lang || "es", hideGuia: !!prefs.hideGuia, lastExport: prefs.lastExport || null } });
   state.esDemo = false;
   return !!me;
 }
 async function refresh() { for (const k in contactCache) delete contactCache[k]; try { await cloudLoad(); } catch (e) { sbErr(e, t("Error al actualizar", "Refresh error")); return; } renderUserChip(); updatePerfilBadge(); renderGuia(); if (currentTab === "directorio") renderDirectory(); if (currentTab === "perfil") renderMyProfile(); if (mapReady) render(); if (selectedId) openProfile(selectedId); }
-let state = normalize({ doctors: [], conns: [], invites: [], contactos: [], posts: [], eventos: [], encuestas: [], session: { currentUserId: null, lastSeenBuzon: 0, lang: (loadPrefs().lang || "es") } });
+let state = normalize({ doctors: [], conns: [], invites: [], contactos: [], session: { currentUserId: null, lang: (loadPrefs().lang || "es") } });
 state.esDemo = false;
 lang = state.session.lang;
 function normalize(p) {
-  p.posts = Array.isArray(p.posts) ? p.posts : [];
-  p.eventos = Array.isArray(p.eventos) ? p.eventos : [];
-  p.encuestas = Array.isArray(p.encuestas) ? p.encuestas : [];
   p.invites = Array.isArray(p.invites) ? p.invites : [];
   p.contactos = Array.isArray(p.contactos) ? p.contactos : [];
-  p.session = p.session || { currentUserId: null, lastSeenBuzon: 0 };
-  if (p.session.lastSeenBuzon === undefined) p.session.lastSeenBuzon = 0;
+  p.session = p.session || { currentUserId: null };
   if (!p.session.lang) p.session.lang = "es";
   if (p.esDemo === undefined) p.esDemo = p.doctors.some((d) => d.id === "d1" && d.nombre === "Dr. Cristóbal Garza");
   p.conns.forEach((c) => { if (c.estado === undefined) c.estado = "confirmada"; });
@@ -1223,7 +1103,6 @@ try { document.getElementById("obOtp").addEventListener("keydown", (e) => { if (
 try { document.getElementById("obLoginEmail").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); obSendMagic(); } }); } catch (e) {}
 try { document.getElementById("obCodeInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); obCheckCode(); } }); } catch (e) {}
 try { const le = localStorage.getItem("mednode_last_email"); if (le && !document.getElementById("obLoginEmail").value) document.getElementById("obLoginEmail").value = le; } catch (e) {}
-function obGoFounderGuard() { return true; }
 // Centro aproximado [lng, lat] por país, como respaldo cuando no se encuentra la ciudad
 const PAIS_CENTRO = { "méxico": [-102.5, 23.6], "mexico": [-102.5, 23.6], "estados unidos": [-98.5, 39.8], "usa": [-98.5, 39.8], "españa": [-3.7, 40.4], "spain": [-3.7, 40.4], "argentina": [-64, -34.6], "brasil": [-51.9, -14.2], "brazil": [-51.9, -14.2], "colombia": [-74.1, 4.7], "chile": [-70.7, -33.4], "perú": [-77, -12], "peru": [-77, -12], "guatemala": [-90.5, 14.6], "costa rica": [-84.1, 9.9], "panamá": [-79.5, 9], "panama": [-79.5, 9], "ecuador": [-78.5, -0.2], "venezuela": [-66.9, 10.5], "uruguay": [-56.2, -34.9], "canadá": [-79.4, 43.7], "canada": [-79.4, 43.7], "francia": [2.3, 48.9], "france": [2.3, 48.9], "alemania": [13.4, 52.5], "germany": [13.4, 52.5], "italia": [12.5, 41.9], "italy": [12.5, 41.9], "reino unido": [-0.1, 51.5], "united kingdom": [-0.1, 51.5], "portugal": [-9.1, 38.7], "bolivia": [-68.1, -16.5], "paraguay": [-57.6, -25.3], "cuba": [-82.4, 23.1], "república dominicana": [-69.9, 18.5], "republica dominicana": [-69.9, 18.5], "honduras": [-87.2, 14.1], "el salvador": [-89.2, 13.7], "nicaragua": [-86.3, 12.1], "puerto rico": [-66.1, 18.4], "países bajos": [4.9, 52.4], "paises bajos": [4.9, 52.4], "india": [77.2, 28.6], "corea del sur": [127, 37.6], "japón": [139.7, 35.7], "japon": [139.7, 35.7], "australia": [151.2, -33.9] };
 let obInviteCode = null; // { code, inviterNombre, paraDoc, bound }
@@ -1341,10 +1220,6 @@ function setTab(name) {
   document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.remove("active"));
   document.getElementById("t-" + name).classList.add("active");
   if (name === "directorio") renderDirectory();
-  if (name === "muro") renderWall();
-  if (name === "buzon") renderBuzon();
-  if (name === "cursos") renderCursos();
-  if (name === "encuestas") renderEncuestas();
   if (name === "perfil") renderMyProfile();
   if (name === "genealogia" && mapReady) { if (sizeMap()) { forceKey = ""; render(); fitToNodes(); } else render(); }
 }
@@ -1477,89 +1352,10 @@ document.getElementById("dirSearch").addEventListener("input", renderDirectory);
 document.getElementById("dirEsp").addEventListener("change", renderDirectory);
 document.getElementById("dirEstado").addEventListener("change", renderDirectory);
 
-/* ============ MURO ============ */
-let postKind = "general";
-document.getElementById("postKinds").innerHTML = Object.entries(KINDS).map(([k, v]) =>
-  "<span class=\"kindChip" + (k === "general" ? " active" : "") + "\" data-k=\"" + k + "\" onclick=\"setPostKind('" + k + "')\">" + v.label + "</span>").join("");
-function setPostKind(k) {
-  postKind = k;
-  document.querySelectorAll(".kindChip").forEach((c) => c.classList.toggle("active", c.dataset.k === k));
-}
-function submitPost() {
-  const titulo = document.getElementById("postTitle").value.trim();
-  const texto = document.getElementById("postBody").value.trim();
-  if (!titulo && !texto) { alert("Escribe al menos un título o un texto."); return; }
-  state.posts.unshift({
-    id: newId("p"), autorId: state.session.currentUserId, tipo: postKind,
-    titulo, texto, fecha: new Date().toISOString(),
-    anon: document.getElementById("postAnon").checked, comentarios: []
-  });
-  save();
-  document.getElementById("postTitle").value = "";
-  document.getElementById("postBody").value = "";
-  document.getElementById("postAnon").checked = false;
-  setPostKind("general");
-  renderWall();
-}
-function renderWall() {
-  { const mb = document.getElementById("muroBadge"); if (mb) mb.textContent = state.posts.length; }
-  const list = document.getElementById("wallList");
-  if (!state.posts.length) { list.innerHTML = "<div class=\"empty\">Aún no hay publicaciones. ¡Sé el primero en compartir algo!</div>"; return; }
-  list.innerHTML = state.posts.map((p) => {
-    const autor = byId(p.autorId);
-    const anon = p.anon || !autor;
-    const nombre = anon ? "Médico verificado (anónimo)" : autor.nombre;
-    const av = anon ? "<div class=\"avatar\" style=\"background:#9aa0ad\">✦</div>" : avatar(autor);
-    const kind = KINDS[p.tipo] ? p.tipo : "general";
-    const mine = p.autorId === state.session.currentUserId;
-    const coms = (p.comentarios || []).map((c) => {
-      const ca = byId(c.autorId);
-      return "<div class=\"comment\"><b>" + esc(ca ? shortName(ca.nombre) : "Médico") + ":</b> <span class=\"ct\">" + esc(c.texto) + "</span></div>";
-    }).join("");
-    return "<div class=\"post\">" +
-      "<div class=\"head\">" + av +
-        "<div><div class=\"who\">" + esc(nombre) + "</div><div class=\"when\">" + timeAgo(p.fecha) + "</div></div>" +
-        "<span class=\"tag " + kind + "\">" + KINDS[kind].label + "</span>" +
-      "</div>" +
-      (p.titulo ? "<div class=\"ttl\">" + esc(p.titulo) + "</div>" : "") +
-      (p.texto ? "<div class=\"body\">" + esc(p.texto) + "</div>" : "") +
-      "<div class=\"actions\">" +
-        "<a onclick=\"toggleComments('" + p.id + "')\">💬 Comentar (" + (p.comentarios || []).length + ")</a>" +
-        (mine ? "<a onclick=\"delPost('" + p.id + "')\" style=\"color:#b03434\">Eliminar</a>" : "") +
-      "</div>" +
-      "<div class=\"comments\" id=\"cm-" + p.id + "\" style=\"display:none\">" + coms +
-        "<div class=\"commentBox\"><input id=\"ci-" + p.id + "\" placeholder=\"Escribe un comentario...\" onkeydown=\"if(event.key==='Enter')addComment('" + p.id + "')\">" +
-        "<button class=\"btn small primary\" onclick=\"addComment('" + p.id + "')\">Enviar</button></div>" +
-      "</div>" +
-    "</div>";
-  }).join("");
-}
-function toggleComments(pid) {
-  const el = document.getElementById("cm-" + pid);
-  el.style.display = el.style.display === "none" ? "block" : "none";
-}
-function addComment(pid) {
-  const inp = document.getElementById("ci-" + pid);
-  const txt = inp.value.trim();
-  if (!txt) return;
-  const p = state.posts.find((x) => x.id === pid);
-  if (!p) return;
-  p.comentarios = p.comentarios || [];
-  p.comentarios.push({ id: "cm" + Date.now(), autorId: state.session.currentUserId, texto: txt, fecha: new Date().toISOString() });
-  save(); renderWall();
-  const reopened = document.getElementById("cm-" + pid); if (reopened) reopened.style.display = "block";
-}
-function delPost(pid) {
-  if (!confirm("¿Eliminar esta publicación?")) return;
-  state.posts = state.posts.filter((p) => p.id !== pid);
-  save(); renderWall();
-}
-
-/* ============ MI PERFIL ============ */
 function renderMyProfile() {
   const d = currentUser();
   const wrap = document.getElementById("perfilWrap");
-  if (!d) { wrap.innerHTML = "<div class=\"empty\">No hay sesión activa.</div>"; return; }
+  if (!d) { wrap.innerHTML = "<div class=\"empty\">" + t("No hay sesión activa.", "No active session.") + "</div>"; return; }
   const rel = state.conns.filter((c) => (c.from === d.id || c.to === d.id) && c.estado !== "pendiente");
   const invitados = state.doctors.filter((x) => x.invitedBy === d.id && x.registrado !== false);
   const misInvites = state.invites.filter((i) => i.creadaPor === d.id);
@@ -1696,132 +1492,7 @@ function copyInvite() {
 function openMenu() {
   const d = currentUser();
   document.getElementById("menuWho").textContent = d ? (t("Sesión: ", "Signed in as: ") + d.nombre + (isAdmin() ? t(" · administrador", " · administrator") : "")) : "";
-  ["btnImport", "btnResetSample", "btnResetReal"].forEach((id) => { const b = document.getElementById(id); if (b) b.style.display = "none"; });
   dlgMenu.showModal();
-}
-function resetReal() { alert(t("En la nube esto se hace desde el panel de Supabase.", "In the cloud this is done from the Supabase dashboard.")); }
-document.getElementById("userChip").addEventListener("dblclick", openMenu);
-
-/* ============ BUZÓN / NOTIFICACIONES ============ */
-const dlgEncuesta = document.getElementById("dlgEncuesta");
-function tsOfId(id) { const n = parseInt(String(id).replace(/\D/g, ""), 10); return n > 1e12 ? n : 0; }
-function getNotifs() {
-  const me = state.session.currentUserId;
-  if (!me) return [];
-  const out = [];
-  const u = byId(me);
-  if (u && u.invitedBy && byId(u.invitedBy)) out.push({ tipo: "welcome", texto: "Te uniste a MEDNODE por invitación de " + byId(u.invitedBy).nombre, fecha: tsOfId(me) });
-  state.posts.forEach((p) => {
-    if (p.autorId === me) (p.comentarios || []).forEach((c) => {
-      if (c.autorId !== me) { const a = byId(c.autorId); out.push({ tipo: "comment", texto: (a ? a.nombre : "Un colega") + " comentó tu publicación: “" + (p.titulo || p.texto || "").slice(0, 45) + "”", fecha: new Date(c.fecha).getTime() || 0 }); }
-    });
-  });
-  state.doctors.forEach((d) => { if (d.invitedBy === me && d.id !== me) out.push({ tipo: "join", texto: d.nombre + " se unió con tu invitación", fecha: tsOfId(d.id) }); });
-  out.sort((a, b) => b.fecha - a.fecha);
-  return out;
-}
-function buzonUnread() { const last = state.session.lastSeenBuzon || 0; return getNotifs().filter((n) => n.fecha > last).length; }
-function updateBadges() {
-  { const mb = document.getElementById("muroBadge"); if (mb) mb.textContent = state.posts.length; }
-  const b = buzonUnread(), bb = document.getElementById("buzonBadge");
-  if (bb) { bb.textContent = b; bb.style.display = b ? "inline-block" : "none"; }
-  const av = encuestasDisponibles().length, eb = document.getElementById("encBadge");
-  if (eb) { eb.textContent = av; eb.style.display = av ? "inline-block" : "none"; }
-}
-function renderBuzon() {
-  const last = state.session.lastSeenBuzon || 0;
-  const list = getNotifs();
-  const el = document.getElementById("buzonList");
-  el.innerHTML = list.length ? list.map((n) => {
-    const unread = n.fecha > last;
-    const icon = n.tipo === "comment" ? "💬" : (n.tipo === "join" ? "🎉" : "👋");
-    return "<div class=\"notif" + (unread ? " unread" : "") + "\"><span class=\"nicon\">" + icon + "</span>" +
-      "<div><div class=\"ntext\">" + esc(n.texto) + "</div>" + (n.fecha ? "<div class=\"nwhen\">" + timeAgo(new Date(n.fecha).toISOString()) + "</div>" : "") + "</div></div>";
-  }).join("") : "<div class=\"empty\">Sin notificaciones por ahora.</div>";
-  state.session.lastSeenBuzon = Date.now(); save(); updateBadges();
-}
-
-/* ============ CURSOS Y CONGRESOS ============ */
-function renderCursos() {
-  const me = state.session.currentUserId;
-  const grid = document.getElementById("cursosGrid");
-  grid.innerHTML = state.eventos.length ? state.eventos.map((e) => {
-    const interes = (e.interesados || []).includes(me);
-    return "<div class=\"docCard\" style=\"cursor:default\">" +
-      "<div style=\"display:flex;justify-content:space-between;align-items:center;gap:8px\">" +
-        "<div class=\"esp\">" + (e.tipo === "congreso" ? "Congreso" : "Curso") + "</div>" +
-        (e.cme ? "<span class=\"verif\" style=\"margin:0\">CME</span>" : "") + "</div>" +
-      "<div class=\"nm\" style=\"margin:8px 0 4px\">" + esc(e.titulo) + "</div>" +
-      "<div class=\"meta\">" + (e.org ? esc(e.org) + "<br>" : "") + (e.lugar ? esc(e.lugar) : "") + (e.fechaTxt ? " · " + esc(e.fechaTxt) : "") + "</div>" +
-      "<div style=\"margin-top:12px;display:flex;align-items:center;gap:10px\">" +
-        "<button class=\"btn small " + (interes ? "" : "primary") + "\" onclick=\"toggleInteres('" + e.id + "')\">" + (interes ? "✓ Te interesa" : "Me interesa") + "</button>" +
-        "<span style=\"font-size:12px;color:#6b7280\">" + (e.interesados || []).length + " interesados</span></div>" +
-    "</div>";
-  }).join("") : "<div class=\"empty\">No hay eventos publicados.</div>";
-}
-function toggleInteres(id) {
-  const me = state.session.currentUserId;
-  const e = state.eventos.find((x) => x.id === id);
-  if (!e) return;
-  e.interesados = e.interesados || [];
-  const i = e.interesados.indexOf(me);
-  if (i >= 0) e.interesados.splice(i, 1); else e.interesados.push(me);
-  save(); renderCursos();
-}
-function submitEvento() {
-  const titulo = document.getElementById("evTitulo").value.trim();
-  if (!titulo) { alert("Escribe el título del evento."); return; }
-  state.eventos.unshift({ id: newId("e"), tipo: document.getElementById("evTipo").value, titulo,
-    org: document.getElementById("evOrg").value.trim(), lugar: document.getElementById("evLugar").value.trim(),
-    fecha: "", fechaTxt: document.getElementById("evFecha").value.trim(), cme: document.getElementById("evCme").checked, interesados: [] });
-  save();
-  ["evTitulo", "evOrg", "evLugar", "evFecha"].forEach((id) => document.getElementById(id).value = "");
-  document.getElementById("evCme").checked = false;
-  renderCursos();
-}
-
-/* ============ ENCUESTAS (demo) ============ */
-function encuestasDisponibles() {
-  const me = state.session.currentUserId, u = byId(me);
-  return state.encuestas.filter((s) => !(s.respondidoPor || []).includes(me) && (!s.esp || s.esp === "Todas" || !u || s.esp === u.esp));
-}
-function walletDemo() {
-  const me = state.session.currentUserId; let t = 0;
-  state.encuestas.forEach((s) => { if ((s.respondidoPor || []).includes(me)) t += s.pago || 0; });
-  return t;
-}
-function renderEncuestas() {
-  const cont = document.getElementById("encList");
-  const disp = encuestasDisponibles();
-  document.getElementById("walletDemo").textContent = "$" + walletDemo().toLocaleString("es-MX") + " MXN";
-  cont.innerHTML = disp.length ? disp.map((s) =>
-    "<div class=\"post\"><div class=\"head\"><div class=\"avatar\" style=\"background:#0f8a5f\">$</div>" +
-    "<div><div class=\"who\">" + esc(s.titulo) + "</div><div class=\"when\">Patrocina: " + esc(s.patrocinador) + " · " + (s.minutos || 5) + " min</div></div>" +
-    "<span class=\"tag referencia\">Gana $" + (s.pago || 0) + " MXN</span></div>" +
-    (s.esp ? "<div class=\"body\" style=\"font-size:13px;color:#6b7280\">Dirigida a: " + esc(s.esp) + "</div>" : "") +
-    "<div class=\"actions\"><a onclick=\"openEncuesta('" + s.id + "')\" style=\"color:#5b50c7;font-weight:600\">Responder encuesta →</a></div></div>"
-  ).join("") : "<div class=\"empty\">No hay encuestas disponibles para ti ahora. Las que respondes suman a tu monedero (demo).</div>";
-}
-let encActual = null;
-function openEncuesta(id) {
-  const s = state.encuestas.find((x) => x.id === id);
-  if (!s) return;
-  encActual = id;
-  document.getElementById("encTitle").textContent = s.titulo;
-  document.getElementById("encPago").textContent = s.pago || 0;
-  document.getElementById("encBody").innerHTML = (s.preguntas || []).map((q, qi) =>
-    "<div style=\"margin:12px 0\"><div style=\"font-weight:600;font-size:13.5px;margin-bottom:6px\">" + (qi + 1) + ". " + esc(q.q) + "</div>" +
-    (q.opciones || []).map((op) => "<label class=\"chkline\" style=\"margin:5px 0\"><input type=\"radio\" name=\"q" + qi + "\"> " + esc(op) + "</label>").join("") + "</div>"
-  ).join("");
-  dlgEncuesta.showModal();
-}
-function submitEncuesta() {
-  const s = state.encuestas.find((x) => x.id === encActual);
-  if (!s) return;
-  s.respondidoPor = s.respondidoPor || [];
-  s.respondidoPor.push(state.session.currentUserId);
-  save(); dlgEncuesta.close(); renderEncuestas(); updateBadges();
-  alert("¡Gracias por responder! Ganaste $" + (s.pago || 0) + " MXN en tu monedero (demo).\n\nEn la versión real esto lo paga la farmacéutica y se deposita a tu cuenta.");
 }
 
 /* ============ MAPA / GENEALOGÍA (motor D3) ============ */
@@ -2590,10 +2261,10 @@ document.getElementById("formDoctor").addEventListener("submit", async (ev) => {
   }
   const norm = (s) => (s || "").trim().toLowerCase();
   const exact = state.doctors.find((x) => x.id !== doc.id && norm(x.nombre) === norm(doc.nombre) && norm(x.esp) === norm(doc.esp) && norm(x.ciudad) === norm(doc.ciudad) && norm(x.pais) === norm(doc.pais));
-  if (exact) { alert("\"" + exact.nombre + "\" ya está registrado con los mismos datos. Cambia algo que los distinga (institución, ciudad o especialidad)."); return; }
+  if (exact) { alert(t("\"" + exact.nombre + "\" ya está registrado con los mismos datos. Cambia algo que los distinga (institución, ciudad o especialidad).", "\"" + exact.nombre + "\" is already registered with the same details. Change something that tells them apart (institution, city or specialty).")); return; }
   if (!id) {
     const dup = state.doctors.find((x) => norm(x.nombre) === norm(doc.nombre));
-    if (dup) { if (!confirm("Ya existe \"" + dup.nombre + "\". ¿Es OTRA persona con el mismo nombre?\n\nAceptar = registrarlo aparte\nCancelar = no duplicar")) return; }
+    if (dup) { if (!confirm(t("Ya existe \"" + dup.nombre + "\". ¿Es OTRA persona con el mismo nombre?\n\nAceptar = registrarlo aparte\nCancelar = no duplicar", "\"" + dup.nombre + "\" already exists. Is this ANOTHER person with the same name?\n\nOK = register separately\nCancel = don't duplicate"))) return; }
   }
   // Campos editables en la nube (los privados solo cuando el formulario los permitió)
   const row = { nombre: doc.nombre, esp: doc.esp, sub: doc.sub, inst: doc.inst, ciudad: doc.ciudad, estado: doc.estado, pais: doc.pais, lat: doc.lat, lng: doc.lng,
@@ -2867,20 +2538,16 @@ async function delDoctor(id) {
 
 /* ============ RESPALDO ============ */
 function exportData() {
-  state.session.lastExport = Date.now(); save();
-  if (currentTab === "perfil") renderMyProfile();
-  // Un miembro exporta su respaldo sin los datos privados (correo/teléfono/cédula) de los demás.
-  let out = state;
-  if (!isAdmin()) {
-    out = JSON.parse(JSON.stringify(state));
-    out.doctors.forEach((d) => { if (!puedoVerContacto(d.id)) { d.email = ""; d.tel = ""; } if (d.id !== state.session.currentUserId) d.cedula = ""; });
-  }
-  const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+  // Copia de MIS datos (perfil, mis conexiones, mis solicitudes). Nada de terceros.
+  const me = state.session.currentUserId, d = byId(me);
+  if (!d) return;
+  const mine = { perfil: d, conexiones: state.conns.filter((c) => c.from === me || c.to === me).map((c) => Object.assign({}, c, { con: (byId(c.from === me ? c.to : c.from) || {}).nombre })),
+    solicitudes_contacto: state.contactos.filter((c) => c.de === me || c.para === me), invitaciones: state.invites.filter((i) => i.creadaPor === me), exportado: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(mine, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = "mednode_datos.json"; a.click();
+  a.href = URL.createObjectURL(blob); a.download = "mednode_mis_datos.json"; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1500);
 }
-function resetSample() { }
 
 /* ============ ARRANQUE ============ */
 function renderUserChip() {
