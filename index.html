@@ -1837,7 +1837,7 @@ function computeClusters(visDocs) {
     if (ps) {
       const rS = mapScreenR(selectedId), rC = Math.min(14 + members.length * 0.35, 22);
       const minD = (rS + rC + 6) / k, dx = cx - ps[0], dy = cy - ps[1], d = Math.hypot(dx, dy);
-      if (d < minD) { const ux = d < 1e-6 ? 1 : dx / d, uy = d < 1e-6 ? -0.35 : dy / d; cx = ps[0] + ux * minD; cy = ps[1] + uy * minD; }
+      if (d < minD) { const ux = dx >= 0 ? 1 : -1; cx = ps[0] + ux * minD * 1.15; cy = ps[1]; } // a un lado, no debajo (ahí va el nombre)
     }
     clusters.push({ id, ciudad: names.length > 1 ? names[0] + " +" + (names.length - 1) : names[0], ciudadReal: p0.ciudad, nCiudades: names.length, estado: names.length > 1 ? "" : p0.estado, pais: p0.pais, x: cx, y: cy, members: members.map((d) => d.id), count: members.length });
   });
