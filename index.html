@@ -1933,11 +1933,17 @@ function arcD(p1, p2, trimStart, trimEnd, bend) {
   return "M" + x1 + "," + y1 + " Q" + cx + "," + cy + " " + x2 + "," + y2;
 }
 const tooltip = document.getElementById("tooltip");
+const TOUCH = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
 function showTip(ev, html) {
+  if (TOUCH || (ev && ev.pointerType === "touch")) { hideTip(); return; } // en celular no hay "pasar el mouse": el toque abre la ficha
   tooltip.innerHTML = html; tooltip.style.display = "block";
   const wrap = document.getElementById("mapWrap").getBoundingClientRect();
+  const tw = tooltip.offsetWidth || 240, th = tooltip.offsetHeight || 60;
   let x = ev.clientX - wrap.left + 14, y = ev.clientY - wrap.top + 10;
-  if (x > wrap.width - 250) x -= 270;
+  if (x + tw > wrap.width - 8) x = ev.clientX - wrap.left - tw - 14;   // no salirse por la derecha
+  if (x < 8) x = 8;                                                     // ni por la izquierda
+  if (y + th > wrap.height - 8) y = ev.clientY - wrap.top - th - 10;   // ni por abajo
+  if (y < 8) y = 8;
   tooltip.style.left = x + "px"; tooltip.style.top = y + "px";
 }
 function hideTip() { tooltip.style.display = "none"; }
