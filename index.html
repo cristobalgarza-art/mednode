@@ -353,10 +353,10 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
         <div><label class="obLabel">Subespecialidad (opcional)</label><input id="obSub" placeholder="Electrofisiología"></div>
       </div>
       <label class="obLabel">Institución / hospital principal</label>
-      <input id="obInst" placeholder="Hospital General de México">
+      <input id="obInst" list="instList" placeholder="Hospital General de México"><datalist id="instList"></datalist>
       <div class="twoCol">
-        <div><label class="obLabel">Ciudad</label><input id="obCiudad" placeholder="Toluca"></div>
-        <div><label class="obLabel">Estado</label><input id="obEstado" placeholder="Estado de México"></div>
+        <div><label class="obLabel">Ciudad</label><input id="obCiudad" list="ciudadList" placeholder="Toluca"><datalist id="ciudadList"></datalist></div>
+        <div><label class="obLabel">Estado</label><input id="obEstado" list="estadoList" placeholder="Elige de la lista"><datalist id="estadoList"></datalist></div>
       </div>
       <label class="obLabel">País</label>
       <input id="obPais" value="México">
@@ -488,10 +488,10 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
     <datalist id="espList"></datalist>
     <datalist id="espCommon"></datalist>
     <label>Institución / hospital</label>
-    <input id="dInst" placeholder="Hospital Universitario">
+    <input id="dInst" list="instList" placeholder="Hospital Universitario">
     <div class="twoCol">
-      <div><label>Ciudad</label><input id="dCiudad" required placeholder="Monterrey"></div>
-      <div><label>Estado</label><input id="dEstado" placeholder="Nuevo León"></div>
+      <div><label>Ciudad</label><input id="dCiudad" list="ciudadList" required placeholder="Monterrey"></div>
+      <div><label>Estado</label><input id="dEstado" list="estadoList" placeholder="Elige de la lista"></div>
     </div>
     <label>País</label>
     <input id="dPais" list="paisList" required placeholder="México">
@@ -871,7 +871,39 @@ const contactCache = {};      // id médico → {email, tel} ya autorizados
 const PREFS_KEY = "mednode_prefs_v1";
 function loadPrefs() { try { return JSON.parse(localStorage.getItem(PREFS_KEY) || "{}") || {}; } catch (e) { return {}; } }
 function savePrefs() { try { localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: state.session.lang, hideGuia: !!state.session.hideGuia, lastExport: state.session.lastExport || null })); } catch (e) {} }
-const rowToDoc = (r) => ({ id: r.id, nombre: r.nombre, esp: r.esp, sub: r.sub, inst: r.inst, ciudad: r.ciudad, estado: r.estado, pais: r.pais, lat: r.lat, lng: r.lng,
+/* ===== Normalización de textos libres (para que "Coah." y "Coahuila", "CLINICA" y "Clínica" no salgan duplicados) ===== */
+const ESTADOS_MX = ["Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua","Ciudad de México","Coahuila","Colima","Durango","Estado de México","Guanajuato","Guerrero","Hidalgo","Jalisco","Michoacán","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla","Querétaro","Quintana Roo","San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatán","Zacatecas"];
+const ESTADO_ALIAS = { "cdmx": "Ciudad de México", "df": "Ciudad de México", "d.f.": "Ciudad de México", "distrito federal": "Ciudad de México", "mexico city": "Ciudad de México", "coah": "Coahuila", "coah.": "Coahuila", "coahuila de zaragoza": "Coahuila", "nl": "Nuevo León", "n.l.": "Nuevo León", "tamps": "Tamaulipas", "tamps.": "Tamaulipas", "edo. mex.": "Estado de México", "edo mex": "Estado de México", "edomex": "Estado de México", "mexico": "Estado de México", "méxico": "Estado de México", "bc": "Baja California", "b.c.": "Baja California", "bcs": "Baja California Sur", "slp": "San Luis Potosí", "s.l.p.": "San Luis Potosí", "qro": "Querétaro", "qro.": "Querétaro", "q. roo": "Quintana Roo", "qroo": "Quintana Roo", "ver": "Veracruz", "ver.": "Veracruz", "gto": "Guanajuato", "gto.": "Guanajuato", "jal": "Jalisco", "jal.": "Jalisco", "mich": "Michoacán", "mich.": "Michoacán", "chih": "Chihuahua", "chih.": "Chihuahua", "son": "Sonora", "son.": "Sonora", "sin": "Sinaloa", "sin.": "Sinaloa", "yuc": "Yucatán", "yuc.": "Yucatán", "pue": "Puebla", "pue.": "Puebla", "oax": "Oaxaca", "oax.": "Oaxaca", "gro": "Guerrero", "gro.": "Guerrero", "hgo": "Hidalgo", "hgo.": "Hidalgo", "mor": "Morelos", "mor.": "Morelos", "nay": "Nayarit", "nay.": "Nayarit", "tab": "Tabasco", "tab.": "Tabasco", "tlax": "Tlaxcala", "tlax.": "Tlaxcala", "zac": "Zacatecas", "zac.": "Zacatecas", "ags": "Aguascalientes", "ags.": "Aguascalientes", "camp": "Campeche", "camp.": "Campeche", "chis": "Chiapas", "chis.": "Chiapas", "col": "Colima", "col.": "Colima", "dgo": "Durango", "dgo.": "Durango" };
+function sinAcentos(s) { return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+function claveTxt(s) { return sinAcentos(String(s || "")).toLowerCase().replace(/\s+/g, " ").replace(/[.\s]+$/, "").trim(); }
+const _minusculas = new Set(["de", "del", "la", "las", "los", "el", "y", "e", "en", "al", "a", "por", "para", "con", "o", "u", "the", "of", "and"]);
+const _siglas = new Set(["imss", "issste", "issemym", "unam", "ipn", "uanl", "udg", "buap", "uaslp", "uach", "uady", "uabc", "cmn", "cmi", "hgm", "inc", "incmnsz", "incan", "inper", "inr", "innn", "ineri", "abc", "issstecali", "pemex", "sedena", "semar", "dif", "hgz", "umf", "umae", "hgr", "hge", "ii", "iii", "iv", "usa", "eua"]);
+function tituloCaso(s) {
+  s = String(s || "").replace(/\s+/g, " ").trim();
+  if (!s) return s;
+  const todoMay = s === s.toUpperCase(), todoMin = s === s.toLowerCase();
+  if (!todoMay && !todoMin) return s;                      // ya viene con mayúsculas/minúsculas mezcladas: respetar
+  return s.toLowerCase().split(/(\s+|\/|-|\()/).map((w, i) => {
+    if (!w || /^(\s+|\/|-|\()$/.test(w)) return w;
+    const k = sinAcentos(w).toLowerCase();
+    if (_siglas.has(k)) return w.toUpperCase();
+    if (i > 0 && _minusculas.has(k)) return w;
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  }).join("");
+}
+function normEstado(s, pais) {
+  s = String(s || "").replace(/\s+/g, " ").trim();
+  if (!s) return s;
+  const k = claveTxt(s);
+  if (ESTADO_ALIAS[k] && (!pais || claveTxt(pais) === "mexico")) return ESTADO_ALIAS[k];
+  const hit = ESTADOS_MX.find((e) => claveTxt(e) === k);
+  if (hit) return hit;
+  return tituloCaso(s);
+}
+function normInst(s) { return tituloCaso(String(s || "").replace(/\s*\/\s*/g, " / ")); }
+function normCiudad(s) { s = tituloCaso(s); const k = claveTxt(s); if (k === "cdmx" || k === "mexico df" || k === "mexico d.f" || k === "ciudad de mexico") return "Ciudad de México"; return s; }
+function normDocTextos(d) { d.estado = normEstado(d.estado, d.pais); d.inst = normInst(d.inst); d.ciudad = normCiudad(d.ciudad); d.pais = tituloCaso(d.pais); return d; }
+const rowToDoc = (r) => normDocTextos({ id: r.id, nombre: r.nombre, esp: r.esp, sub: r.sub, inst: r.inst, ciudad: r.ciudad, estado: r.estado, pais: r.pais, lat: r.lat, lng: r.lng,
   email: r.email || "", tel: r.tel || "", cedula: r.cedula || "", notas: r.notas, formacion: Array.isArray(r.formacion) ? r.formacion : [], buscaEntrar: r.busca_entrar,
   registrado: !!r.registrado, rol: r.rol, invitedBy: r.invited_by, creadoPor: r.creado_por, aceptoPrivacidad: r.acepto_privacidad, verificado: true, tieneCedula: !!r.tiene_cedula });
 const rowToConn = (r) => ({ id: r.id, from: r.from_id, to: r.to_id, tipo: r.tipo, detalle: r.detalle, estado: r.estado, creadaPor: r.creada_por });
@@ -1210,7 +1242,7 @@ async function obCreateProfile() {
   msg.textContent = t("Creando tu perfil...", "Creating your profile...");
   const r = await sb.rpc("register_profile", {
     p_code: obInviteCode ? obInviteCode.code : "", p_nombre: nombre, p_esp: espv, p_sub: document.getElementById("obSub").value.trim(),
-    p_inst: document.getElementById("obInst").value.trim(), p_ciudad: ciudad, p_estado: document.getElementById("obEstado").value.trim(), p_pais: pais,
+    p_inst: normInst(document.getElementById("obInst").value), p_ciudad: normCiudad(ciudad), p_estado: normEstado(document.getElementById("obEstado").value, pais), p_pais: tituloCaso(pais),
     p_lat: lat, p_lng: lng, p_email: emailV, p_cedula: cedulaV, p_formacion: formacion, p_busca: document.getElementById("obBusca").value.trim(),
     p_rel: obInviteCode ? ((document.getElementById("obRel") || {}).value || "amistad") : ""
   });
@@ -1347,13 +1379,13 @@ function renderDirectory() {
   const espSel = document.getElementById("dirEsp");
   const estSel = document.getElementById("dirEstado");
   fillSelectKeep(espSel, [...new Set(state.doctors.map((d) => canonEsp(d.esp)))].sort((a, b) => espT(a).localeCompare(espT(b))), "Toda especialidad", espT);
-  const lugares = [...new Set(state.doctors.map((d) => d.estado || d.pais).filter(Boolean))].sort((a, b) => paisT(a).localeCompare(paisT(b)));
+  const lugares = unicosTxt(state.doctors.map((d) => d.estado || d.pais)).sort((a, b) => paisT(a).localeCompare(paisT(b)));
   fillSelectKeep(estSel, lugares, "Todo estado/país", paisT);
   const q = (document.getElementById("dirSearch").value || "").toLowerCase().trim();
   const fe = espSel.value, fl = estSel.value;
   const list = state.doctors.filter((d) => {
     if (fe && canonEsp(d.esp) !== fe) return false;
-    if (fl && d.estado !== fl && d.pais !== fl) return false;
+    if (fl && claveTxt(d.estado) !== claveTxt(fl) && claveTxt(d.pais) !== claveTxt(fl)) return false;
     if (q) {
       const hay = (d.nombre + " " + d.esp + " " + espT(d.esp) + " " + (d.sub || "") + " " + espT(d.sub) + " " + (d.inst || "") + " " + d.ciudad + " " + (d.estado || "") + " " + d.pais + " " + paisT(d.pais)).toLowerCase();
       if (!hay.includes(q)) return false;
@@ -1761,7 +1793,7 @@ function visibleDoctors() {
   if (selectedId && selectedId !== me) { const ch = pathTo(selectedId); if (ch) ch.forEach((s) => { ruta.add(s.from); ruta.add(s.to); }); }
   return state.doctors.filter((d) => {
     if (d.id === me || d.id === selectedId || ruta.has(d.id)) return true;
-    const passF = (!esp || canonEsp(d.esp) === esp) && (!pais || d.pais === pais) && (!inst || d.inst === inst);
+    const passF = (!esp || canonEsp(d.esp) === esp) && (!pais || claveTxt(d.pais) === claveTxt(pais)) && (!inst || claveTxt(d.inst) === claveTxt(inst));
     if (!passF) return false;
     if (alcance === "todos") return true;
     if (alcance === "conectados") return degOf(d.id) > 0;
@@ -2010,10 +2042,15 @@ function applyFocus() {
   gNodes.selectAll("g.node").attr("opacity", (d) => nb.has(d.id) ? 1 : dimNode);
   { const _p = getPositions(); applyLinkFade(_p); labelPass(_p); }
 }
+function unicosTxt(arr) { const m = new Map(); arr.filter(Boolean).forEach((v) => { const k = claveTxt(v); if (!m.has(k)) m.set(k, v); }); return [...m.values()].sort((a, b) => a.localeCompare(b)); }
 function populateFilters() {
   fillSelect(fEsp, [...new Set(state.doctors.map((d) => canonEsp(d.esp)))].sort((a, b) => espT(a).localeCompare(espT(b))), "Todas", espT);
   fillSelect(fPais, [...new Set(state.doctors.map((d) => d.pais))].sort((a, b) => paisT(a).localeCompare(paisT(b))), "Todos", paisT);
-  fillSelect(fInst, [...new Set(state.doctors.map((d) => d.inst).filter(Boolean))].sort(), "Todas");
+  fillSelect(fInst, unicosTxt(state.doctors.map((d) => d.inst)), "Todas");
+  const dl = (id, vals) => { const el = document.getElementById(id); if (el) el.innerHTML = vals.map((e) => "<option value=\"" + esc(e) + "\">").join(""); };
+  dl("instList", unicosTxt(state.doctors.map((d) => d.inst)));
+  dl("ciudadList", unicosTxt(state.doctors.map((d) => d.ciudad)));
+  dl("estadoList", unicosTxt(ESTADOS_MX.concat(state.doctors.map((d) => d.estado))));
   fillEspDatalists();
   document.getElementById("paisList").innerHTML = [...new Set(state.doctors.map((d) => d.pais))].map((e) => "<option value=\"" + esc(e) + "\">").join("");
   const leg = document.getElementById("espLegend");
@@ -2270,8 +2307,8 @@ document.getElementById("formDoctor").addEventListener("submit", async (ev) => {
     creadoPor: prev ? prev.creadoPor : (state.session.currentUserId || null),
     rol: prev ? (prev.rol || "miembro") : "miembro",
     aceptoPrivacidad: prev ? prev.aceptoPrivacidad : null,
-    nombre: dNombre.value.trim(), esp: dEsp.value.trim(), sub: dSub.value.trim(), inst: dInst.value.trim(),
-    ciudad: dCiudad.value.trim(), estado: dEstado.value.trim(), pais: dPais.value.trim(),
+    nombre: dNombre.value.trim(), esp: dEsp.value.trim(), sub: dSub.value.trim(), inst: normInst(dInst.value),
+    ciudad: normCiudad(dCiudad.value), estado: normEstado(dEstado.value, dPais.value), pais: tituloCaso(dPais.value),
     lat: parseFloat(dLat.value), lng: parseFloat(dLng.value),
     email: dEmail.disabled && prev ? (prev.email || "") : dEmail.value.trim(),
     tel: dTel.disabled && prev ? (prev.tel || "") : dTel.value.trim(),
