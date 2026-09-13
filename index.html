@@ -1047,7 +1047,7 @@ function inviteFromUrl() {
   try {
     const q = new URLSearchParams(location.search), hp = new URLSearchParams((location.hash || "").replace(/^#/, ""));
     const c = (q.get("i") || hp.get("i") || "").trim().toUpperCase();
-    if (c) { localStorage.setItem("mednode_invite", c); history.replaceState(null, "", location.pathname); }
+    if (c) { localStorage.setItem("mednode_invite", c); history.replaceState(null, "", location.pathname + location.hash); } // conservar #access_token del enlace mágico
   } catch (e) {}
   try { return localStorage.getItem("mednode_invite") || ""; } catch (e) { return ""; }
 }
@@ -1071,18 +1071,34 @@ async function refreshOnboardOptions() {
   catch (e) { if (f) f.style.display = "none"; }
 }
 // Enlace mágico al correo (sin contraseñas)
+// Espera de 60 s entre envíos: si alguien toca dos veces, el segundo correo cancelaría el código del primero.
+let _cdTimer = null;
+function obCooldown() {
+  const btn = document.getElementById("btnMagic"); if (!btn) return;
+  let last = 0; try { last = parseInt(localStorage.getItem("mednode_last_send") || "0", 10); } catch (e) {}
+  const left = Math.ceil((last + 60000 - Date.now()) / 1000);
+  clearTimeout(_cdTimer);
+  if (left > 0) { btn.disabled = true; btn.textContent = t("Reenviar en " + left + " s", "Resend in " + left + " s"); _cdTimer = setTimeout(obCooldown, 1000); }
+  else { btn.disabled = false; btn.textContent = t("Enviarme mi código de acceso", "Send me my access code"); }
+}
 async function obSendMagic() {
   const email = document.getElementById("obLoginEmail").value.trim().toLowerCase();
   const msg = document.getElementById("obLoginMsg"), btn = document.getElementById("btnMagic");
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.style.color = "#b03434"; msg.textContent = t("Escribe un correo válido.", "Enter a valid email."); return; }
-  btn.disabled = true; msg.style.color = "#0f6e56"; msg.textContent = t("Enviando enlace...", "Sending link...");
-  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
-  btn.disabled = false;
-  if (error) { msg.style.color = "#b03434"; msg.textContent = t("No se pudo enviar: ", "Could not send: ") + error.message; return; }
-  msg.style.color = "#0f6e56"; msg.textContent = t("Listo. Abre tu correo (" + email + ") y escribe aquí abajo el código que trae (o toca el botón del correo). Usa siempre el correo más reciente: cada envío cancela el anterior.", "Done. Open your email (" + email + ") and type the code below (or tap the button in the email). Always use the most recent email: each new request cancels the previous one.");
-  try { localStorage.setItem("mednode_last_email", email); } catch (e) {}
+  if (btn.disabled) return;
+  btn.disabled = true; msg.style.color = "#0f6e56"; msg.textContent = t("Enviando...", "Sending...");
+  // El enlace del correo lleva la invitación dentro: al tocarlo entra y cae directo en su perfil, sin volver a WhatsApp ni escribir códigos.
+  const inv = inviteFromUrl();
+  const redirect = window.location.origin + window.location.pathname + (inv ? "?i=" + encodeURIComponent(inv) : "");
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirect } });
+  if (error) { btn.disabled = false; msg.style.color = "#b03434"; msg.textContent = t("No se pudo enviar: ", "Could not send: ") + friendlyErr(error); return; }
+  try { localStorage.setItem("mednode_last_email", email); localStorage.setItem("mednode_last_send", String(Date.now())); } catch (e) {}
+  msg.style.color = "#0f6e56";
+  msg.innerHTML = t("Te enviamos un correo a <b>" + esc(email) + "</b>. Ábrelo y toca el botón <b>Entrar a MEDNODE</b>: con eso entras. Si prefieres, copia el código del correo y pégalo aquí abajo. (Si no lo ves, revisa Spam.)", "We sent an email to <b>" + esc(email) + "</b>. Open it and tap <b>Enter MEDNODE</b>: that signs you in. Or copy the code from the email and paste it below. (Check Spam if you don't see it.)");
+  obCooldown();
   try { document.getElementById("obOtp").focus(); } catch (e) {}
 }
+try { obCooldown(); } catch (e) {}
 async function obVerifyOtp() {
   const email = document.getElementById("obLoginEmail").value.trim().toLowerCase();
   const token = (document.getElementById("obOtp").value || "").replace(/\D/g, "");
@@ -1092,7 +1108,14 @@ async function obVerifyOtp() {
   btn.disabled = true; msg.style.color = "#0f6e56"; msg.textContent = t("Verificando...", "Verifying...");
   const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
   btn.disabled = false;
-  if (error) { msg.style.color = "#b03434"; msg.textContent = t("Código incorrecto o caducado. Pide un enlace nuevo y usa el código del correo más reciente.", "Wrong or expired code. Request a new link and use the code from the most recent email."); return; }
+  if (error) {
+    msg.style.color = "#b03434";
+    const em = (error.message || "");
+    if (/expired/i.test(em)) msg.textContent = t("Ese código ya caducó (dura 1 hora) o pediste otro después. Usa el del correo más reciente o toca su botón.", "That code expired (valid 1 hour) or you requested another one later. Use the most recent email or tap its button.");
+    else if (/rate|too many/i.test(em)) msg.textContent = t("Demasiados intentos; espera un minuto e inténtalo de nuevo.", "Too many attempts; wait a minute and try again.");
+    else msg.textContent = t("Código incorrecto. Revisa que el correo escrito arriba sea exactamente al que llegó el código, y que copiaste los 8 dígitos.", "Wrong code. Check that the email above is exactly where the code arrived and that you copied all 8 digits.");
+    return;
+  }
   msg.textContent = t("Entrando...", "Signing in...");
 }
 // Si el enlace del correo ya caducó, Supabase regresa aquí con #error=... : explicarlo en vez de mostrar la pantalla vacía.
