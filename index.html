@@ -636,6 +636,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
   <p class="dlgsub" id="menuWho"></p>
   <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
     <button class="btn" onclick="exportData()">Descargar copia de mis datos (.json)</button>
+    <button class="btn" onclick="dlgMenu.close(); pwaMostrar(true)">Instalar MEDNODE en mi celular</button>
     <button class="btn" onclick="reportarProblema()">Reportar un problema</button>
     <button class="btn" onclick="logout()">Cerrar sesión</button>
   </div>
@@ -763,7 +764,7 @@ const DICT = {
   "+ Conexión": "+ Connection", "Editar": "Edit", "Eliminar": "Delete",
   "○ No registrado — invítalo para que reclame su perfil": "○ Not registered — invite them to claim their profile",
   "Ubicación": "Location", "Correo": "Email", "Bio": "Bio", "Busca entrar a": "Seeking to enter", "Colegas que invité": "Colleagues I invited",
-  "Editar mi perfil": "Edit my profile", "Ver mi red en el mapa": "See my network on the map", "Mi cuenta": "My account", "Descargar copia de mis datos (.json)": "Download a copy of my data (.json)",
+  "Editar mi perfil": "Edit my profile", "Ver mi red en el mapa": "See my network on the map", "Mi cuenta": "My account", "Instalar MEDNODE en mi celular": "Install MEDNODE on my phone", "Descargar copia de mis datos (.json)": "Download a copy of my data (.json)",
   "¿Es cierto?": "Is this true?", "Aceptar": "Accept", "Rechazar": "Decline",
   "(cédula profesional general, no la de especialidad · la verificación automática vendrá después)": "(general professional license, not the specialty one · automatic verification will come later)",
   "Sus maestros (de quién aprendió)": "Their mentors (who trained them)", "Sin maestros registrados.": "No mentors recorded.",
@@ -899,18 +900,21 @@ let _pwaPrompt = null;
 const PWA_STANDALONE = window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true);
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); }); }
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); _pwaPrompt = e; pwaMostrar(); });
-function pwaMostrar() {
-  if (PWA_STANDALONE) return;
-  try { if (localStorage.getItem("mednode_pwa_no") === "1") return; } catch (e) {}
+function pwaMostrar(forzar) {
+  if (PWA_STANDALONE) { if (forzar) alert(t("MEDNODE ya está instalada en este dispositivo.", "MEDNODE is already installed on this device.")); return; }
+  if (!forzar) { try { if (localStorage.getItem("mednode_pwa_no") === "1") return; } catch (e) {} }
   if (!currentUser()) return;            // solo ya adentro
-  if (!/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) return;   // solo en celular/tablet
+  if (!/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) { if (forzar) alert(t("La instalación es para celular: abre mednode.net en el teléfono.", "Installation is for phones: open mednode.net on your phone.")); return; }
   const b = document.getElementById("pwaBanner"), tx = document.getElementById("pwaTxt"), ib = document.getElementById("pwaInstallBtn");
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
   const android = /Android/.test(navigator.userAgent);
+  // Si el enlace se abrió desde WhatsApp / Gmail, esto es un "mini-navegador": ahí no se puede instalar.
+  const miniNav = !!(document.referrer && /^android-app:\/\//.test(document.referrer)) || (android && !_pwaPrompt);
   if (_pwaPrompt) { ib.style.display = ""; tx.textContent = t("Queda con icono en tu pantalla de inicio y abre a pantalla completa, como una app.", "It gets an icon on your home screen and opens full-screen, like an app."); }
-  else if (ios) { ib.style.display = "none"; tx.innerHTML = t("En Safari toca <b>Compartir</b> (el cuadro con la flecha ↑) y luego <b>Agregar a pantalla de inicio</b>.", "In Safari tap <b>Share</b> (the box with the ↑ arrow) and then <b>Add to Home Screen</b>."); }
-  else if (android) { ib.style.display = "none"; tx.innerHTML = t("En Chrome toca el menú <b>⋮</b> y luego <b>Agregar a pantalla principal</b> / <b>Instalar app</b>.", "In Chrome tap the <b>⋮</b> menu and then <b>Add to Home screen</b> / <b>Install app</b>."); }
-  else return;                          // en computadora no molestar
+  else if (ios) { ib.style.display = "none"; tx.innerHTML = t("Si abriste desde WhatsApp o correo, primero toca <b>Abrir en Safari</b> (ícono de la brújula, abajo a la derecha). Ya en Safari: <b>Compartir</b> (cuadro con flecha ↑) → <b>Agregar a pantalla de inicio</b>.", "If you opened this from WhatsApp or email, first tap <b>Open in Safari</b> (compass icon, bottom right). In Safari: <b>Share</b> (box with ↑ arrow) → <b>Add to Home Screen</b>."); }
+  else if (android && miniNav) { ib.style.display = "none"; tx.innerHTML = t("Estás en el mini-navegador de WhatsApp/Gmail y ahí no se puede instalar. Toca <b>⋮</b> (arriba a la derecha) → <b>Abrir en Chrome</b>. Ya en Chrome: <b>⋮</b> → <b>Instalar app</b>.", "You're in the WhatsApp/Gmail mini-browser, where installing isn't possible. Tap <b>⋮</b> (top right) → <b>Open in Chrome</b>. In Chrome: <b>⋮</b> → <b>Install app</b>."); }
+  else if (android) { ib.style.display = "none"; tx.innerHTML = t("En Chrome toca el menú <b>⋮</b> y luego <b>Instalar app</b>.", "In Chrome tap the <b>⋮</b> menu and then <b>Install app</b>."); }
+  else return;
   b.style.display = "block";
 }
 async function pwaInstalar() {
@@ -2562,7 +2566,7 @@ function renderUserChip() {
 }
 function boot() {
   try { document.getElementById("btnReporte").style.display = ""; } catch (e) {}
-  setTimeout(pwaMostrar, 2500);
+  setTimeout(pwaMostrar, 4000);
   renderUserChip();
   renderDirectory();
   updatePerfilBadge();
