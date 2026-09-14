@@ -1280,7 +1280,7 @@ function shortName(nombre) {
   if (parts.length <= 1) return nombre;
   return parts[0][0] + ". " + parts.slice(1).join(" ");
 }
-function esc(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 function memberBadge(d) {
   if (d.registrado === false) return "<div class=\"verif\" style=\"background:#f3f4f7;color:#6b7280\">○ No registrado · invítalo</div>";
   if (d.rol === "admin") return "<div class=\"verif\" style=\"background:#fdf6e3;color:#8a6400\">★ Fundador · Miembro</div>";
