@@ -352,7 +352,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
         <div><label class="obLabel">Especialidad</label><input id="obEsp" list="espCommon" placeholder="Cardiología / Medicina general"></div>
         <div><label class="obLabel">Subespecialidad (opcional)</label><input id="obSub" placeholder="Electrofisiología"></div>
       </div>
-      <label class="obLabel">Institución / hospital principal</label>
+      <label class="obLabel">Hospital o institución donde laboras actualmente</label>
       <input id="obInst" list="instList" placeholder="Hospital General de México"><datalist id="instList"></datalist>
       <div class="twoCol">
         <div><label class="obLabel">Ciudad</label><input id="obCiudad" list="ciudadList" placeholder="Toluca"><datalist id="ciudadList"></datalist></div>
@@ -487,7 +487,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
     </div>
     <datalist id="espList"></datalist>
     <datalist id="espCommon"></datalist>
-    <label>Institución / hospital</label>
+    <label>Hospital o institución donde labora actualmente</label>
     <input id="dInst" list="instList" placeholder="Hospital Universitario">
     <div class="twoCol">
       <div><label>Ciudad</label><input id="dCiudad" list="ciudadList" required placeholder="Monterrey"></div>
@@ -703,7 +703,8 @@ const DICT = {
   "Cardiología / Medicina general": "Cardiology / General practice",
   "Subespecialidad (opcional)": "Subspecialty (optional)",
   "Electrofisiología": "Electrophysiology",
-  "Institución / hospital principal": "Main institution / hospital",
+  "Hospital o institución donde laboras actualmente": "Hospital or institution where you currently work",
+  "Hospital o institución donde labora actualmente": "Hospital or institution where they currently work",
   "Hospital General de México": "General Hospital",
   "Ciudad": "City", "Estado": "State", "País": "Country",
   "¿Dónde hiciste tu especialidad? (para reencontrar a tu generación)": "Where did you do your residency? (to reconnect with your class)",
