@@ -600,6 +600,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
   </div>
   <div class="dlgBtns">
     <button class="btn" onclick="copyInvite()">Copiar código</button>
+    <button class="btn" id="btnSigInv" onclick="siguienteInvitacion()" title="Genera un código nuevo para otra persona">Siguiente colega →</button>
     <button class="btn primary" onclick="dlgInvite.close()">Listo</button>
   </div>
 </dialog>
@@ -753,6 +754,7 @@ const DICT = {
   // Map tools / aside
   "Vista:": "View:", "Red de relaciones": "Relationship network", "Mapa mundial": "World map", "Buscar médico...": "Search physician...",
   "Filtros": "Filters", "＋ Médico": "＋ Physician", "＋ Conexión": "＋ Connection",
+  "Siguiente colega →": "Next colleague →", "Copiar código": "Copy code",
   "Todas": "All", "Todos": "All", "Institución": "Institution", "Hospital actual": "Current hospital", "Universidad (medicina)": "Medical school", "Sede de especialidad": "Residency site",
   "¿Dónde estudiaste medicina? (universidad)": "Where did you study medicine? (university)", "Universidad donde estudió medicina (opcional)": "Medical school (optional)",
   "Especialidades": "Specialties", "Tipo de trazo": "Line type",
@@ -1145,7 +1147,7 @@ const rowToDoc = (r) => normDocTextos({ id: r.id, nombre: r.nombre, esp: r.esp, 
   email: r.email || "", tel: r.tel || "", cedula: r.cedula || "", notas: r.notas, formacion: Array.isArray(r.formacion) ? r.formacion : [], buscaEntrar: r.busca_entrar,
   registrado: !!r.registrado, rol: r.rol, invitedBy: r.invited_by, creadoPor: r.creado_por, aceptoPrivacidad: r.acepto_privacidad, verificado: true, tieneCedula: !!r.tiene_cedula });
 const rowToConn = (r) => ({ id: r.id, from: r.from_id, to: r.to_id, tipo: r.tipo, detalle: r.detalle, estado: r.estado, creadaPor: r.creada_por });
-const rowToInvite = (r) => ({ id: r.id, code: r.code, creadaPor: r.creada_por, paraDoc: r.para_doc, usada: r.usada, usadaPor: r.usada_por, fecha: r.created_at });
+const rowToInvite = (r) => ({ id: r.id, code: r.code, creadaPor: r.creada_por, paraDoc: r.para_doc, usada: r.usada, usadaPor: r.usada_por, fecha: r.created_at, compartida: !!r.compartida });
 const rowToContact = (r) => ({ id: r.id, de: r.de, para: r.para, motivo: r.motivo, detalle: r.detalle, estado: r.estado, fecha: r.created_at, respondida: r.respondida });
 let _ultimoError = "";
 function sbErr(e, ctx) { console.error(ctx, e); _ultimoError = (ctx ? ctx + ": " : "") + ((e && e.message) || String(e)); alert((ctx ? ctx + ": " : "") + friendlyErr(e)); }
@@ -1745,8 +1747,9 @@ async function openInviteDlg(forDocId) {
   const target = forDocId ? byId(forDocId) : null;
   const paraDoc = (target && target.registrado === false) ? target.id : null;
   const me = state.session.currentUserId;
-  // Reutilizar un código propio aún no usado (mismo destino) en vez de crear uno cada vez que se abre el diálogo
-  const libre = (state.invites || []).find((i) => i.creadaPor === me && !i.usada && (i.paraDoc || null) === paraDoc);
+  // Reutilizar un código propio aún no usado NI compartido (mismo destino). Si ya lo compartiste con alguien,
+  // el siguiente "Invitar" genera uno nuevo: cada código sirve para una sola persona.
+  const libre = (state.invites || []).find((i) => i.creadaPor === me && !i.usada && !i.compartida && (i.paraDoc || null) === paraDoc);
   let code = libre ? libre.code : randomCode();
   if (!libre) {
     const r = await sb.from("invites").insert({ code, creada_por: me, para_doc: paraDoc });
@@ -1759,8 +1762,9 @@ async function openInviteDlg(forDocId) {
   document.getElementById("inviteCode").textContent = code;
   document.getElementById("inviteHelp").textContent = (target && target.registrado === false)
     ? t("Este código es exclusivo para " + target.nombre + ": al usarlo, reclamará su perfil con todas sus conexiones.", "This code is exclusively for " + target.nombre + ": when used, they will claim their profile with all its connections.")
-    : t("El enlace sirve para una persona: al abrirlo, entra con su correo y su perfil queda ligado a ti.", "The link is for one person: they open it, sign in with their email, and their profile is linked to you.");
-  dlgInvite.showModal();
+    : t("El enlace sirve para una persona: al abrirlo, entra con su correo y su perfil queda ligado a ti. Para invitar a otra persona, toca \"Siguiente colega\".", "The link is for one person: they open it, sign in with their email, and their profile is linked to you. To invite someone else, tap \"Next colleague\".");
+  const bs = document.getElementById("btnSigInv"); if (bs) bs.style.display = (target && target.registrado === false) ? "none" : "";
+  if (!dlgInvite.open) dlgInvite.showModal();
 }
 const APP_URL = window.location.origin + window.location.pathname; // dirección del sitio: se incluye en las invitaciones
 let inviteActual = null;
@@ -1772,8 +1776,24 @@ function inviteMessage() {
     ? saludo + " I'm inviting you to MEDNODE, the invitation-only network for physicians (who trained whom, who works with whom).\nEnter here: " + link + "\n— " + (me ? me.nombre : "")
     : saludo + " te invito a MEDNODE, la red de médicos por invitación (quién formó a quién, quién trabaja con quién).\nEntra aquí: " + link + "\n— " + (me ? me.nombre : "");
 }
+// Marca el código actual como compartido (en la nube y en memoria) para que no se repita con otra persona
+function marcarCompartida() {
+  if (!inviteActual || inviteActual.compartida) return;
+  inviteActual.compartida = true;
+  const inv = (state.invites || []).find((i) => i.code === inviteActual.code);
+  if (inv) inv.compartida = true;
+  try { sb.from("invites").update({ compartida: true }).eq("code", inviteActual.code).then(() => {}); } catch (e) {}
+}
+// "Siguiente colega": el código actual queda apartado para quien ya lo recibió y se genera uno nuevo sin cerrar el diálogo
+async function siguienteInvitacion() {
+  marcarCompartida();
+  const tgt = inviteActual && inviteActual.target ? inviteActual.target.id : undefined;
+  const b = document.getElementById("btnSigInv"); if (b) b.disabled = true;
+  try { if (dlgInvite.open) dlgInvite.close(); await openInviteDlg(tgt); } finally { if (b) b.disabled = false; }
+}
 function shareInvite(kind) {
   if (!inviteActual) return;
+  marcarCompartida();
   const msg = inviteMessage();
   const subject = lang === "en" ? "Invitation to MEDNODE" : "Invitación a MEDNODE";
   try {
@@ -1792,6 +1812,7 @@ function openPriv() {
 function copyInvite() {
   const code = document.getElementById("inviteCode").textContent;
   const help = document.getElementById("inviteHelp");
+  marcarCompartida();
   const manual = () => { help.textContent = t("Copia manualmente el código: ", "Copy the code manually: ") + code; };
   try {
     if (!navigator.clipboard) { manual(); return; }
