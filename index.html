@@ -888,7 +888,7 @@ const ESTADO_ALIAS = { "cdmx": "Ciudad de México", "df": "Ciudad de México", "
 function sinAcentos(s) { return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
 function claveTxt(s) { return sinAcentos(String(s || "")).toLowerCase().replace(/\s+/g, " ").replace(/[.\s]+$/, "").trim(); }
 const _minusculas = new Set(["de", "del", "la", "las", "los", "el", "y", "e", "en", "al", "a", "por", "para", "con", "o", "u", "the", "of", "and"]);
-const _siglas = new Set(["imss", "issste", "issemym", "unam", "ipn", "uanl", "udg", "buap", "uaslp", "uach", "uady", "uabc", "cmn", "cmi", "hgm", "inc", "incmnsz", "incan", "inper", "inr", "innn", "ineri", "abc", "issstecali", "pemex", "sedena", "semar", "dif", "hgz", "umf", "umae", "hgr", "hge", "ii", "iii", "iv", "usa", "eua"]);
+const _siglas = new Set(["imss", "issste", "issemym", "unam", "ipn", "uanl", "udg", "buap", "uaslp", "uach", "uady", "uabc", "cmn", "cmi", "hgm", "inc", "incmnsz", "incan", "inper", "inr", "innn", "ineri", "abc", "issstecali", "pemex", "sedena", "semar", "dif", "hgz", "umf", "umae", "hto", "hgr", "hge", "hgo", "hes", "cmn", "ii", "iii", "iv", "usa", "eua"]);
 function tituloCaso(s) {
   s = String(s || "").replace(/\s+/g, " ").trim();
   if (!s) return s;
@@ -1026,6 +1026,8 @@ const INST_CATALOGO = [
   ["Hospital San José de Hermosillo", ["hospital san jose de hermosillo", "san jose hermosillo"]],
   ["Clínica de Especialistas – Piedras Negras", ["clinica de especialistas", "clinica especialistas", "clinica de especialistas piedras negras", "clinica especialistas piedras negras", "clinica de especialistas de piedras negras"]],
   ["Hospital Inglés – Piedras Negras", ["hospital ingles", "hospital ingles piedras negras", "ingles piedras negras"]],
+  ["Hospital Juárez de México", ["hospital juarez", "hospital juarez de mexico", "hjm", "juarez de mexico"]],
+  ["IMSS UMAE HTO 21 Monterrey", ["hto 21", "umae hto 21", "umae 21 monterrey", "hospital de traumatologia y ortopedia 21", "traumatologia 21", "hto 21 monterrey", "umae hto 21 monterrey", "imss hto 21", "imss hto 21 monterrey"]],
   ["Centro Médico ISSEMYM Ecatepec", ["cmi ecatepec", "cm issemym ecatepec", "cme issemym", "centro medico issemym ecatepec", "centro medico issemym de ecatepec", "centro medico ecatepec", "centro medico ecatepec issemym", "issemym ecatepec", "issemym centro medico ecatepec", "issemym hospital ecatepec", "hospital issemym ecatepec", "hospital ecatepec issemym"]],
   ["Shriners Hospital for Children México", ["shriners", "hospital shriners"]],
   ["Hospital Star Médica Infantil Privado", ["infantil privado", "hospital infantil privado"]],
@@ -1051,7 +1053,7 @@ INST_CATALOGO.forEach(([canon, aliases]) => {
 _instParcial.sort((a, b) => b[0].length - a[0].length);   // el alias más largo manda
 const INST_CADENAS = new Set(["Hospital Ángeles", "Christus Muguerza", "Star Médica", "Hospital CIMA", "IMSS", "ISSSTE", "ISSEMYM", "IMSS-Bienestar", "PEMEX (Servicios de Salud)", "Hospital Amerimed"]);
 // Unidades IMSS escritas a mano: "HGZ 11 Piedras Negras" → "IMSS HGZ 11 Piedras Negras"
-const RE_IMSS_UNIDAD = /^(hgz|hgr|hgs|hgsz|hgsmf|hgzmf|umf|umae|hes|hgp|hgo|umaa|hp)\s*(?:no\.?\s*|n°\s*|#\s*)?\d+/i;
+const RE_IMSS_UNIDAD = /^(hgz|hgr|hgs|hgsz|hgsmf|hgzmf|umf|umae|hto|hes|hgp|hgo|umaa|hp)\s*(?:no\.?\s*|n°\s*|#\s*)?\d+/i;
 function instCanon(s) {
   const k = instKey(s);
   if (!k) return null;
@@ -1122,7 +1124,7 @@ function normInst(s) {
   s = String(s || "").replace(/\s*\/\s*/g, " / ").replace(/\s+/g, " ").trim(); if (!s) return s;
   if (_instExacto.has(instKey(s))) return _instExacto.get(instKey(s));          // nombre completo conocido (aunque traiga "/")
   if (s.includes(" / ")) { const vistos = new Set(); return s.split(" / ").map((p) => instCanon(p) || tituloCaso(p)).filter((p) => { const k = instKey(p); if (!k || vistos.has(k)) return false; vistos.add(k); return true; }).join(" / "); }
-  if (RE_IMSS_UNIDAD.test(s)) return "IMSS " + tituloCaso(s).replace(/^(hgz|hgr|hgs|hgsz|hgsmf|hgzmf|umf|umae|hes|hgp|hgo|umaa|hp)\b/i, (m) => m.toUpperCase());
+  if (RE_IMSS_UNIDAD.test(s)) return "IMSS " + tituloCaso(s).replace(/^(hgz|hgr|hgs|hgsz|hgsmf|hgzmf|umf|umae|hto|hes|hgp|hgo|umaa|hp)\b/i, (m) => m.toUpperCase());
   return instCanon(s) || tituloCaso(s);
 }
 function normCiudad(s) { s = tituloCaso(s); const k = claveTxt(s); if (k === "cdmx" || k === "mexico df" || k === "mexico d.f" || k === "ciudad de mexico") return "Ciudad de México"; return s; }
