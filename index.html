@@ -901,9 +901,291 @@ function normEstado(s, pais) {
   if (hit) return hit;
   return tituloCaso(s);
 }
-function normInst(s) { return tituloCaso(String(s || "").replace(/\s*\/\s*/g, " / ")); }
+/* Catálogo de instituciones médicas de México: nombre oficial + formas comunes de escribirlo.
+   Se usa para unificar lo que escriben los médicos (universidades, hospitales, institutos).
+   Formato: [nombre canónico, [alias...]]. Los alias se comparan sin acentos, sin mayúsculas y sin puntos. */
+const INST_CATALOGO = [
+  // ===== Universidades (con facultad/escuela de medicina) =====
+  ["Universidad Nacional Autónoma de México (UNAM)", ["unam", "universidad nacional autonoma de mexico", "facultad de medicina unam", "fac med unam", "fes zaragoza", "fes iztacala"]],
+  ["Instituto Politécnico Nacional (IPN)", ["ipn", "instituto politecnico nacional", "escuela superior de medicina ipn", "esm ipn", "escuela superior de medicina", "encb ipn"]],
+  ["Universidad Autónoma de Nuevo León (UANL)", ["uanl", "universidad autonoma de nuevo leon", "facultad de medicina uanl", "fac med uanl", "facultad de medicina de la uanl"]],
+  ["Universidad de Monterrey (UDEM)", ["udem", "universidad de monterrey", "u de m"]],
+  ["Tecnológico de Monterrey (ITESM / TecSalud)", ["itesm", "tec de monterrey", "tecnologico de monterrey", "tec salud", "tecsalud", "tec", "escuela de medicina tec de monterrey", "escuela de medicina itesm", "tec de monterrey escuela de medicina", "instituto tecnologico y de estudios superiores de monterrey"]],
+  ["Universidad Autónoma de Coahuila (UAdeC)", ["uadec", "ua de c", "universidad autonoma de coahuila", "facultad de medicina uadec", "facultad de medicina unidad torreon", "facultad de medicina unidad saltillo"]],
+  ["Universidad Autónoma de Tamaulipas (UAT)", ["uat", "universidad autonoma de tamaulipas", "facultad de medicina uat", "facultad de medicina de tampico", "facultad de medicina matamoros"]],
+  ["Universidad Autónoma de San Luis Potosí (UASLP)", ["uaslp", "universidad autonoma de san luis potosi", "facultad de medicina uaslp"]],
+  ["Universidad de Guadalajara (UdeG)", ["udeg", "u de g", "universidad de guadalajara", "cucs", "centro universitario de ciencias de la salud"]],
+  ["Universidad Autónoma de Guadalajara (UAG)", ["uag", "universidad autonoma de guadalajara"]],
+  ["Universidad Autónoma del Estado de México (UAEMex)", ["uaemex", "uaem", "universidad autonoma del estado de mexico", "facultad de medicina uaemex"]],
+  ["Universidad Autónoma del Estado de Morelos (UAEM)", ["universidad autonoma del estado de morelos", "uaem morelos"]],
+  ["Universidad Autónoma de Chihuahua (UACH)", ["uach", "universidad autonoma de chihuahua", "facultad de medicina uach"]],
+  ["Universidad Autónoma de Ciudad Juárez (UACJ)", ["uacj", "universidad autonoma de ciudad juarez"]],
+  ["Universidad Autónoma de Baja California (UABC)", ["uabc", "universidad autonoma de baja california", "facultad de medicina uabc"]],
+  ["Universidad de Sonora (UNISON)", ["unison", "universidad de sonora"]],
+  ["Universidad Autónoma de Sinaloa (UAS)", ["uas", "universidad autonoma de sinaloa", "facultad de medicina uas"]],
+  ["Universidad Autónoma de Durango (UAD)", ["uad", "universidad autonoma de durango"]],
+  ["Universidad Juárez del Estado de Durango (UJED)", ["ujed", "universidad juarez del estado de durango"]],
+  ["Universidad Autónoma de Zacatecas (UAZ)", ["uaz", "universidad autonoma de zacatecas"]],
+  ["Universidad Autónoma de Aguascalientes (UAA)", ["uaa", "universidad autonoma de aguascalientes"]],
+  ["Universidad de Guanajuato (UG)", ["universidad de guanajuato", "ug", "ugto"]],
+  ["Universidad Autónoma de Querétaro (UAQ)", ["uaq", "universidad autonoma de queretaro"]],
+  ["Universidad Michoacana de San Nicolás de Hidalgo (UMSNH)", ["umsnh", "universidad michoacana", "universidad michoacana de san nicolas de hidalgo", "nicolaita"]],
+  ["Benemérita Universidad Autónoma de Puebla (BUAP)", ["buap", "benemerita universidad autonoma de puebla", "universidad autonoma de puebla"]],
+  ["Universidad Popular Autónoma del Estado de Puebla (UPAEP)", ["upaep", "universidad popular autonoma del estado de puebla"]],
+  ["Universidad Veracruzana (UV)", ["uv", "universidad veracruzana"]],
+  ["Universidad Autónoma de Yucatán (UADY)", ["uady", "universidad autonoma de yucatan"]],
+  ["Universidad Autónoma de Campeche (UAC)", ["universidad autonoma de campeche", "uacam"]],
+  ["Universidad Autónoma de Chiapas (UNACH)", ["unach", "universidad autonoma de chiapas"]],
+  ["Universidad Juárez Autónoma de Tabasco (UJAT)", ["ujat", "universidad juarez autonoma de tabasco"]],
+  ["Universidad Autónoma de Guerrero (UAGro)", ["uagro", "universidad autonoma de guerrero"]],
+  ["Universidad Autónoma Benito Juárez de Oaxaca (UABJO)", ["uabjo", "universidad autonoma benito juarez de oaxaca"]],
+  ["Universidad Autónoma de Nayarit (UAN)", ["uan", "universidad autonoma de nayarit"]],
+  ["Universidad de Colima (UCOL)", ["ucol", "universidad de colima"]],
+  ["Universidad Autónoma de Tlaxcala (UATx)", ["uatx", "universidad autonoma de tlaxcala"]],
+  ["Universidad Autónoma del Estado de Hidalgo (UAEH)", ["uaeh", "universidad autonoma del estado de hidalgo"]],
+  ["Universidad Autónoma Metropolitana (UAM)", ["uam", "universidad autonoma metropolitana", "uam xochimilco", "uam iztapalapa"]],
+  ["Universidad Anáhuac", ["anahuac", "universidad anahuac", "anahuac mexico", "anahuac norte", "anahuac queretaro", "anahuac mayab"]],
+  ["Universidad La Salle", ["la salle", "universidad la salle", "ulsa"]],
+  ["Universidad Panamericana (UP)", ["universidad panamericana", "up medicina"]],
+  ["Universidad Westhill", ["westhill", "universidad westhill"]],
+  ["Universidad del Valle de México (UVM)", ["uvm", "universidad del valle de mexico"]],
+  ["Universidad Cuauhtémoc", ["universidad cuauhtemoc", "cuauhtemoc"]],
+  ["Universidad Xochicalco", ["xochicalco", "universidad xochicalco"]],
+  ["Universidad Quetzalcóatl de Irapuato (UQI)", ["uqi", "universidad quetzalcoatl"]],
+  ["Universidad Justo Sierra", ["justo sierra", "universidad justo sierra"]],
+  ["Universidad Regional del Sureste (URSE)", ["urse", "universidad regional del sureste"]],
+  ["Universidad Marista de Mérida", ["marista", "universidad marista"]],
+  ["Universidad de Montemorelos (UM)", ["universidad de montemorelos", "montemorelos"]],
+  ["Universidad México Americana del Norte (UMAN)", ["uman", "universidad mexico americana del norte"]],
+  ["Universidad Autónoma de Baja California Sur (UABCS)", ["uabcs", "universidad autonoma de baja california sur"]],
+  ["Universidad Autónoma de Quintana Roo (UQROO)", ["uqroo", "universidad autonoma de quintana roo", "universidad de quintana roo"]],
+  ["Universidad del Noreste (UNE)", ["universidad del noreste", "une tampico"]],
+  ["Universidad Valle del Bravo (UVB)", ["uvb", "universidad valle del bravo"]],
+  ["Universidad Autónoma de Nuevo León – Hospital Universitario (UANL)", ["hospital universitario uanl", "hospital universitario dr jose eleuterio gonzalez", "hospital universitario de monterrey", "hu uanl", "hospital universitario nuevo leon"]],
+
+  // ===== Instituciones de salud (sistemas) =====
+  ["IMSS", ["imss", "instituto mexicano del seguro social", "seguro social", "i m s s"]],
+  ["ISSSTE", ["issste", "instituto de seguridad y servicios sociales de los trabajadores del estado"]],
+  ["ISSEMYM", ["issemym", "instituto de seguridad social del estado de mexico y municipios"]],
+  ["PEMEX (Servicios de Salud)", ["pemex", "hospital pemex", "hospital central pemex", "petroleos mexicanos"]],
+  ["SEDENA (Servicio de Sanidad Militar)", ["sedena", "hospital central militar", "sanidad militar", "escuela militar de medicina", "hospital militar"]],
+  ["SEMAR (Sanidad Naval)", ["semar", "hospital naval", "centro medico naval", "sanidad naval"]],
+  ["Secretaría de Salud (SSA)", ["ssa", "secretaria de salud", "salud", "servicios de salud", "imss bienestar", "insabi"]],
+  ["DIF", ["dif", "sistema dif"]],
+  ["Cruz Roja Mexicana", ["cruz roja", "cruz roja mexicana"]],
+
+  // ===== Hospitales e institutos de referencia =====
+  ["Hospital General de México Dr. Eduardo Liceaga", ["hospital general de mexico", "hgm", "hospital general de mexico eduardo liceaga", "hospital general de mexico dr eduardo liceaga", "hgm liceaga"]],
+  ["Centro Médico Nacional Siglo XXI (IMSS)", ["centro medico nacional siglo xxi", "cmn siglo xxi", "siglo xxi", "cmn sxxi", "hospital de especialidades siglo xxi", "he cmn siglo xxi"]],
+  ["Centro Médico Nacional La Raza (IMSS)", ["la raza", "centro medico nacional la raza", "cmn la raza", "hospital de especialidades la raza", "hospital general la raza"]],
+  ["Centro Médico Nacional 20 de Noviembre (ISSSTE)", ["20 de noviembre", "cmn 20 de noviembre", "centro medico nacional 20 de noviembre", "hospital 20 de noviembre"]],
+  ["Instituto Nacional de Ciencias Médicas y Nutrición Salvador Zubirán (INCMNSZ)", ["incmnsz", "nutricion", "instituto nacional de nutricion", "salvador zubiran", "instituto nacional de ciencias medicas y nutricion"]],
+  ["Instituto Nacional de Cardiología Ignacio Chávez (INC)", ["instituto nacional de cardiologia", "cardiologia ignacio chavez", "inc ignacio chavez", "incich"]],
+  ["Instituto Nacional de Cancerología (INCan)", ["incan", "instituto nacional de cancerologia", "cancerologia"]],
+  ["Instituto Nacional de Pediatría (INP)", ["inp", "instituto nacional de pediatria"]],
+  ["Hospital Infantil de México Federico Gómez (HIMFG)", ["himfg", "hospital infantil de mexico", "hospital infantil federico gomez"]],
+  ["Instituto Nacional de Perinatología (INPer)", ["inper", "instituto nacional de perinatologia", "perinatologia"]],
+  ["Instituto Nacional de Neurología y Neurocirugía (INNN)", ["innn", "instituto nacional de neurologia", "neurologia y neurocirugia", "manuel velasco suarez"]],
+  ["Instituto Nacional de Enfermedades Respiratorias (INER)", ["iner", "instituto nacional de enfermedades respiratorias"]],
+  ["Instituto Nacional de Rehabilitación (INR)", ["inr", "instituto nacional de rehabilitacion"]],
+  ["Instituto Nacional de Psiquiatría Ramón de la Fuente", ["instituto nacional de psiquiatria", "psiquiatria ramon de la fuente"]],
+  ["Instituto Nacional de Geriatría", ["instituto nacional de geriatria", "inger"]],
+  ["Instituto Nacional de Salud Pública (INSP)", ["insp", "instituto nacional de salud publica"]],
+  ["Hospital Juárez de México", ["hospital juarez", "hospital juarez de mexico"]],
+  ["Hospital General Dr. Manuel Gea González", ["gea gonzalez", "hospital gea gonzalez", "hospital general manuel gea gonzalez"]],
+  ["Hospital de la Mujer (CDMX)", ["hospital de la mujer"]],
+  ["Hospital Ángeles", ["hospital angeles", "angeles", "grupo angeles", "hospitales angeles"]],
+  ["Hospital ABC (Centro Médico ABC)", ["abc", "hospital abc", "centro medico abc", "american british cowdray", "abc observatorio", "abc santa fe"]],
+  ["Médica Sur", ["medica sur", "hospital medica sur"]],
+  ["Hospital Español de México", ["hospital espanol", "hospital espanol de mexico", "sociedad de beneficencia espanola"]],
+  ["Star Médica", ["star medica", "hospital star medica", "starmedica"]],
+  ["Hospital Ángeles del Pedregal", ["angeles del pedregal", "angeles pedregal", "hospital angeles pedregal"]],
+  ["Christus Muguerza", ["christus muguerza", "muguerza", "hospital christus muguerza", "christus"]],
+  ["Hospital San José (TecSalud)", ["hospital san jose", "hospital san jose tec", "san jose tecsalud", "hospital san jose tec de monterrey"]],
+  ["Hospital Zambrano Hellion (TecSalud)", ["zambrano hellion", "hospital zambrano hellion", "zambrano"]],
+  ["Doctors Hospital (Monterrey)", ["doctors hospital", "doctors hospital monterrey"]],
+  ["OCA Hospital (Monterrey)", ["oca hospital", "hospital oca", "oca"]],
+  ["Hospital Metropolitano Dr. Bernardo Sepúlveda (Nuevo León)", ["hospital metropolitano", "metropolitano bernardo sepulveda", "hospital metropolitano monterrey"]],
+  ["Hospital Civil de Guadalajara", ["hospital civil de guadalajara", "hospital civil", "hospital civil fray antonio alcalde", "hospital civil juan i menchaca", "antiguo hospital civil", "nuevo hospital civil"]],
+  ["Hospital Universitario de Puebla (BUAP)", ["hospital universitario de puebla", "hospital universitario buap", "hup"]],
+  ["Hospital Universitario de Saltillo (UAdeC)", ["hospital universitario de saltillo", "hospital universitario saltillo"]],
+  ["Hospital Universitario de Torreón (UAdeC)", ["hospital universitario de torreon", "hospital universitario torreon"]],
+  ["Hospital Central Dr. Ignacio Morones Prieto (SLP)", ["hospital central slp", "hospital central san luis potosi", "morones prieto", "hospital central ignacio morones prieto", "hospital central"]],
+  ["Hospital General de Culiacán", ["hospital general de culiacan"]],
+  ["Hospital General de Tijuana", ["hospital general de tijuana", "hospital general tijuana"]],
+  ["Hospital General de Mexicali", ["hospital general de mexicali"]],
+  ["Hospital General de León", ["hospital general de leon", "hospital general leon"]],
+  ["Hospital Regional de Alta Especialidad del Bajío (HRAEB)", ["hraeb", "hospital regional de alta especialidad del bajio", "alta especialidad del bajio"]],
+  ["Hospital Regional de Alta Especialidad de Ixtapaluca", ["hrae ixtapaluca", "alta especialidad ixtapaluca"]],
+  ["Hospital Regional de Alta Especialidad de Oaxaca", ["hrae oaxaca", "alta especialidad oaxaca"]],
+  ["Hospital Regional de Alta Especialidad de la Península de Yucatán", ["hrae peninsula de yucatan", "hraepy", "alta especialidad merida"]],
+  ["Hospital Regional de Alta Especialidad de Ciudad Victoria", ["hrae ciudad victoria", "alta especialidad ciudad victoria", "bicentenario 2010"]],
+  ["Hospital Regional de Alta Especialidad de Zumpango", ["hrae zumpango", "alta especialidad zumpango"]],
+  ["Hospital Amerimed", ["amerimed", "hospital amerimed"]],
+  ["Hospital Galenia (Cancún)", ["galenia", "hospital galenia"]],
+  ["Hospital Puerta de Hierro", ["puerta de hierro", "hospital puerta de hierro"]],
+  ["Hospital Real San José (Guadalajara)", ["real san jose", "hospital real san jose"]],
+  ["Hospital Country 2000 (Guadalajara)", ["country 2000", "hospital country 2000"]],
+  ["Hospital San Javier (Guadalajara)", ["hospital san javier", "san javier"]],
+  ["Hospital Hispano Americano (Mexicali)", ["hispano americano", "hospital hispano americano"]],
+  ["Hospital Almater (Mexicali)", ["almater", "hospital almater"]],
+  ["Hospital CIMA", ["cima", "hospital cima"]],
+  ["Hospital San José de Hermosillo", ["hospital san jose de hermosillo", "san jose hermosillo"]],
+  ["Hospital General de Zona (IMSS)", ["hgz", "hospital general de zona", "hospital general de zona imss"]],
+  ["Hospital General Regional (IMSS)", ["hgr", "hospital general regional", "hospital general regional imss"]],
+  ["Unidad Médica de Alta Especialidad (UMAE, IMSS)", ["umae", "unidad medica de alta especialidad"]],
+  ["Unidad de Medicina Familiar (UMF, IMSS)", ["umf", "unidad de medicina familiar"]],
+  ["Hospital Rural IMSS-Bienestar", ["hospital rural", "imss bienestar hospital rural", "hospital rural imss"]],
+  ["Hospital General de Piedras Negras", ["hospital general de piedras negras", "hospital general piedras negras"]],
+  ["Clínica de Especialistas (Piedras Negras)", ["clinica de especialistas", "clinica de especialistas piedras negras"]],
+  ["Hospital General de Nuevo Laredo", ["hospital general de nuevo laredo", "hospital general nuevo laredo"]],
+  ["Hospital General de Saltillo", ["hospital general de saltillo", "hospital general saltillo"]],
+  ["Hospital General de Torreón", ["hospital general de torreon"]],
+  ["Hospital General de Monclova", ["hospital general de monclova", "hospital amparo pape"]],
+  ["Hospital General de Acuña", ["hospital general de acuna", "hospital general acuna"]],
+  ["Hospital General de Morelia", ["hospital general de morelia", "hospital general dr miguel silva", "miguel silva"]],
+  ["Hospital General de Toluca", ["hospital general de toluca", "hospital general dr nicolas san juan", "nicolas san juan"]],
+  ["Hospital General de Ecatepec", ["hospital general de ecatepec", "hospital general las americas", "las americas ecatepec", "hospital general jose maria rodriguez"]],
+  ["Centro Médico ISSEMYM Ecatepec", ["cmi ecatepec", "centro medico issemym ecatepec", "centro medico issemym", "issemym ecatepec", "cmi"]],
+  ["Hospital General de Querétaro", ["hospital general de queretaro", "hospital general queretaro"]],
+  ["Hospital General de Durango", ["hospital general de durango", "hospital general 450"]],
+  ["Hospital General de Chihuahua", ["hospital general de chihuahua", "hospital central del estado chihuahua", "hospital central chihuahua"]],
+  ["Hospital General de Ciudad Juárez", ["hospital general de ciudad juarez", "hospital general juarez"]],
+  ["Hospital General de Hermosillo", ["hospital general de hermosillo", "hospital general del estado de sonora"]],
+  ["Hospital General de Tampico", ["hospital general de tampico", "hospital general dr carlos canseco", "carlos canseco"]],
+  ["Hospital General de Reynosa", ["hospital general de reynosa"]],
+  ["Hospital General de Matamoros", ["hospital general de matamoros", "hospital general alfredo pumarejo"]],
+  ["Hospital General de Veracruz", ["hospital general de veracruz", "hospital regional de veracruz"]],
+  ["Hospital General de Puebla", ["hospital general de puebla", "hospital general del sur puebla", "hospital general zona norte puebla"]],
+  ["Hospital General de Acapulco", ["hospital general de acapulco", "hospital general el quemado"]],
+  ["Hospital General de Cancún", ["hospital general de cancun", "hospital general jesus kumate"]],
+  ["Hospital General de Mérida (O'Horán)", ["hospital ohoran", "hospital general agustin ohoran", "o horan", "hospital general de merida"]],
+  ["Hospital General de Villahermosa (Rovirosa)", ["hospital rovirosa", "hospital general gustavo rovirosa", "hospital general de villahermosa"]],
+  ["Hospital General de Oaxaca (Aurelio Valdivieso)", ["hospital aurelio valdivieso", "hospital general de oaxaca", "aurelio valdivieso"]],
+  ["Hospital General de Tuxtla Gutiérrez", ["hospital general de tuxtla", "hospital general de tuxtla gutierrez", "hospital de especialidades vida mejor"]],
+  ["Hospital General de Aguascalientes (Hidalgo)", ["hospital hidalgo", "centenario hospital miguel hidalgo", "hospital general de aguascalientes"]],
+  ["Hospital General de Zacatecas", ["hospital general de zacatecas", "hospital general luz gonzalez cosio"]],
+  ["Hospital General de San Luis Potosí (IMSS HGZ 50)", ["hgz 50", "hgz 50 san luis potosi", "hospital general de zona 50"]],
+  ["Hospital General de Xalapa", ["hospital general de xalapa", "hospital luis f nachon", "nachon"]],
+  ["Hospital General de Pachuca", ["hospital general de pachuca", "hospital general pachuca"]],
+  ["Hospital General de Cuernavaca", ["hospital general de cuernavaca", "hospital jose g parres", "parres"]],
+  ["Hospital General de Tepic", ["hospital general de tepic", "hospital civil de tepic"]],
+  ["Hospital General de Colima", ["hospital general de colima", "hospital regional universitario colima"]],
+  ["Hospital General de Tlaxcala", ["hospital general de tlaxcala"]],
+  ["Hospital General de Campeche", ["hospital general de campeche", "hospital general de especialidades campeche"]],
+  ["Hospital General de La Paz", ["hospital general de la paz", "hospital juan maria de salvatierra", "salvatierra"]],
+  ["Hospital General de Chetumal", ["hospital general de chetumal"]],
+  ["Hospital General de Irapuato", ["hospital general de irapuato"]],
+  ["Hospital General de Celaya", ["hospital general de celaya"]],
+  ["Hospital General de Uruapan", ["hospital general de uruapan", "hospital general dr pedro daniel martinez"]],
+  ["Hospital General de Zamora", ["hospital general de zamora"]],
+  ["Hospital General de Los Mochis", ["hospital general de los mochis"]],
+  ["Hospital General de Mazatlán", ["hospital general de mazatlan", "hospital general dr martiniano carvajal"]],
+  ["Hospital General de Ciudad Obregón", ["hospital general de ciudad obregon", "hospital general obregon"]],
+  ["Hospital General de Ensenada", ["hospital general de ensenada"]],
+  ["Hospital General de Nogales", ["hospital general de nogales"]],
+  ["Hospital General de Gómez Palacio", ["hospital general de gomez palacio"]],
+  ["Hospital General de Salamanca", ["hospital general de salamanca"]],
+  ["Hospital General de Tapachula", ["hospital general de tapachula"]],
+  ["Hospital General de Poza Rica", ["hospital general de poza rica"]],
+  ["Hospital General de Coatzacoalcos", ["hospital general de coatzacoalcos", "hospital general valentin gomez farias"]],
+  ["Hospital General de Minatitlán", ["hospital general de minatitlan"]],
+  ["Hospital General de Orizaba", ["hospital general de orizaba", "hospital regional de rio blanco", "rio blanco"]],
+  ["Hospital General de Ciudad Victoria", ["hospital general de ciudad victoria", "hospital general dr norberto trevino zapata", "norberto trevino"]],
+  ["Hospital General de Tlalnepantla", ["hospital general de tlalnepantla", "hospital general valle ceylan"]],
+  ["Hospital General de Naucalpan", ["hospital general de naucalpan", "hospital general maximiliano ruiz castaneda"]],
+  ["Hospital General de Atizapán", ["hospital general de atizapan", "hospital general salvador gonzalez herrejon"]],
+  ["Hospital General de Chalco", ["hospital general de chalco"]],
+  ["Hospital General de Texcoco", ["hospital general de texcoco", "hospital general guadalupe victoria"]],
+  ["Hospital General de Cuautitlán", ["hospital general de cuautitlan", "hospital general jose vicente villada"]],
+  ["Hospital General de Nezahualcóyotl", ["hospital general de nezahualcoyotl", "hospital general la perla", "la perla neza"]],
+  ["Hospital General Xoco (CDMX)", ["hospital xoco", "hospital general xoco", "xoco"]],
+  ["Hospital General Balbuena (CDMX)", ["hospital balbuena", "hospital general balbuena", "balbuena"]],
+  ["Hospital General La Villa (CDMX)", ["hospital la villa", "hospital general la villa"]],
+  ["Hospital General Rubén Leñero (CDMX)", ["ruben lenero", "hospital ruben lenero", "hospital general ruben lenero"]],
+  ["Hospital General de Iztapalapa", ["hospital general de iztapalapa"]],
+  ["Hospital General Ajusco Medio", ["ajusco medio", "hospital general ajusco medio"]],
+  ["Hospital General Dr. Enrique Cabrera", ["enrique cabrera", "hospital enrique cabrera"]],
+  ["Hospital General de Ticomán", ["hospital de ticoman", "hospital general de ticoman", "ticoman"]],
+  ["Hospital General Milpa Alta", ["hospital general milpa alta", "milpa alta"]],
+  ["Hospital General Tláhuac", ["hospital general tlahuac", "tlahuac"]],
+  ["Hospital General Villa (CDMX)", ["hospital general villa"]],
+  ["Hospital Regional Lic. Adolfo López Mateos (ISSSTE)", ["lopez mateos issste", "hospital regional lopez mateos", "hospital lopez mateos"]],
+  ["Hospital Regional 1° de Octubre (ISSSTE)", ["1 de octubre", "hospital regional 1 de octubre", "primero de octubre"]],
+  ["Hospital General Dr. Darío Fernández Fierro (ISSSTE)", ["dario fernandez", "hospital dario fernandez"]],
+  ["Hospital General de Zona 1 (IMSS)", ["hgz 1", "hgz no 1", "hospital general de zona 1"]],
+  ["Hospital de Especialidades Centro Médico Nacional de Occidente (IMSS)", ["centro medico nacional de occidente", "cmno", "cmn occidente", "hospital de especialidades cmno"]],
+  ["Hospital de Especialidades UMAE 25 (IMSS Monterrey)", ["umae 25", "hospital de especialidades 25", "hospital de especialidades numero 25", "he 25", "umae 25 monterrey"]],
+  ["Hospital de Ginecobstetricia UMAE 23 (IMSS Monterrey)", ["umae 23", "hospital de ginecobstetricia 23", "gineco 23"]],
+  ["Hospital de Traumatología UMAE 21 (IMSS Monterrey)", ["umae 21", "hospital de traumatologia 21", "traumatologia 21"]],
+  ["Hospital de Cardiología UMAE 34 (IMSS Monterrey)", ["umae 34", "hospital de cardiologia 34", "cardiologia 34"]],
+  ["UMAE 71 (IMSS Torreón)", ["umae 71", "hospital de especialidades 71", "he 71 torreon"]],
+  ["UMAE 14 (IMSS Veracruz)", ["umae 14", "hospital de especialidades 14"]],
+  ["UMAE 1 Bajío (IMSS León)", ["umae 1 bajio", "hospital de especialidades 1 bajio", "he 1 leon", "t1 leon"]],
+  ["UMAE 2 (IMSS Ciudad Obregón)", ["umae 2", "hospital de especialidades 2 obregon"]],
+  ["UMAE Puebla (IMSS San José)", ["umae puebla", "hospital de especialidades puebla", "umae san jose puebla", "cmn manuel avila camacho"]],
+  ["UMAE Mérida (IMSS Ignacio García Téllez)", ["umae merida", "ignacio garcia tellez", "cmn ignacio garcia tellez"]],
+  ["Hospital de Pediatría CMN Siglo XXI (IMSS)", ["hospital de pediatria siglo xxi", "pediatria cmn siglo xxi"]],
+  ["Hospital de Cardiología CMN Siglo XXI (IMSS)", ["hospital de cardiologia siglo xxi", "cardiologia cmn siglo xxi"]],
+  ["Hospital de Oncología CMN Siglo XXI (IMSS)", ["hospital de oncologia siglo xxi", "oncologia cmn siglo xxi"]],
+  ["Hospital de Ginecobstetricia 4 Luis Castelazo Ayala (IMSS)", ["luis castelazo", "gineco 4", "hospital de ginecobstetricia 4", "castelazo ayala"]],
+  ["Hospital de Ginecobstetricia 3 CMN La Raza (IMSS)", ["gineco 3", "hospital de ginecobstetricia 3", "gineco la raza"]],
+  ["Hospital de Traumatología Magdalena de las Salinas (IMSS)", ["magdalena de las salinas", "traumatologia magdalena de las salinas", "hospital de traumatologia victorio de la fuente narvaez", "victorio de la fuente"]],
+  ["Hospital de Traumatología Lomas Verdes (IMSS)", ["lomas verdes", "traumatologia lomas verdes"]],
+  ["Hospital de Infectología CMN La Raza (IMSS)", ["hospital de infectologia", "infectologia la raza"]],
+  ["Hospital Psiquiátrico Fray Bernardino Álvarez", ["fray bernardino", "hospital psiquiatrico fray bernardino"]],
+  ["Shriners Hospital for Children México", ["shriners", "hospital shriners"]],
+  ["Hospital Star Médica Infantil Privado", ["infantil privado", "hospital infantil privado"]],
+  ["Hospital Médica Sur Lomas", ["medica sur lomas"]],
+  ["Hospital Dalinde", ["dalinde", "hospital dalinde"]],
+  ["Hospital Santa Fe (CDMX)", ["hospital santa fe"]],
+  ["Sanatorio Durango", ["sanatorio durango"]],
+  ["Hospital San Ángel Inn", ["san angel inn", "hospital san angel inn"]],
+  ["Hospital Torre Médica", ["torre medica"]],
+  ["Hospital Central Norte PEMEX", ["hospital central norte", "central norte pemex"]],
+  ["Hospital Central Sur PEMEX", ["hospital central sur", "central sur pemex", "picacho"]],
+  ["Hospital Militar Regional", ["hospital militar regional"]],
+  ["Hospital Central Militar", ["hospital central militar", "central militar"]],
+  ["Hospital General Naval de Alta Especialidad", ["hospital naval de alta especialidad", "hospital general naval"]],
+  ["Centro Médico Nacional del Noreste (IMSS Monterrey)", ["cmn del noreste", "centro medico nacional del noreste", "cmn noreste"]]
+];
+// Índice alias → nombre oficial (se construye una vez)
+const _instExacto = new Map(), _instParcial = [];
+INST_CATALOGO.forEach(([canon, aliases]) => {
+  aliases.concat([canon]).forEach((a) => {
+    const k = claveTxt(a).replace(/[.,()]/g, "").replace(/\s+/g, " ").trim();
+    if (!k) return;
+    if (!_instExacto.has(k)) _instExacto.set(k, canon);
+    if (k.length >= 5) _instParcial.push([k, canon]);   // parciales solo con alias largos (evita "tec", "abc", "oca"…)
+  });
+});
+_instParcial.sort((a, b) => b[0].length - a[0].length);   // el alias más largo manda
+const INST_CADENAS = new Set(["Hospital Ángeles", "Christus Muguerza", "Star Médica", "Hospital CIMA", "IMSS", "ISSSTE", "Hospital Amerimed"]);
+function instCanon(s) {
+  const k = claveTxt(s).replace(/[.,()]/g, "").replace(/\s+/g, " ").trim();
+  if (!k) return null;
+  if (_instExacto.has(k)) return _instExacto.get(k);
+  const kk = " " + k + " ";
+  for (const [a, canon] of _instParcial) {
+    if (!kk.includes(" " + a + " ")) continue;
+    if (INST_CADENAS.has(canon)) {
+      // Cadenas: conservar la sede ("Hospital Ángeles Valle Oriente", "IMSS HGZ 11")
+      const resto = k.replace(a, "").replace(/\s+/g, " ").trim();
+      const original = String(s).replace(/\s+/g, " ").trim();
+      const restoOrig = original.slice(original.length - resto.length);   // misma longitud, con acentos/mayúsculas originales
+      return resto ? canon + " " + tituloCaso(restoOrig.length === resto.length ? restoOrig : resto) : canon;
+    }
+    return canon;
+  }
+  return null;
+}
+function normInst(s) {
+  s = String(s || "").replace(/\s*\/\s*/g, " / ").replace(/\s+/g, " ").trim(); if (!s) return s;
+  if (s.includes(" / ")) return s.split(" / ").map((p) => instCanon(p) || tituloCaso(p)).join(" / ");
+  return instCanon(s) || tituloCaso(s);
+}
 function normCiudad(s) { s = tituloCaso(s); const k = claveTxt(s); if (k === "cdmx" || k === "mexico df" || k === "mexico d.f" || k === "ciudad de mexico") return "Ciudad de México"; return s; }
-function normDocTextos(d) { d.estado = normEstado(d.estado, d.pais); d.inst = normInst(d.inst); d.ciudad = normCiudad(d.ciudad); d.pais = tituloCaso(d.pais); return d; }
+function normDocTextos(d) { d.estado = normEstado(d.estado, d.pais); d.inst = normInst(d.inst); d.ciudad = normCiudad(d.ciudad); d.pais = tituloCaso(d.pais); if (Array.isArray(d.formacion)) d.formacion.forEach((f) => { if (f && f.sede) f.sede = normInst(f.sede); }); return d; }
 const rowToDoc = (r) => normDocTextos({ id: r.id, nombre: r.nombre, esp: r.esp, sub: r.sub, inst: r.inst, ciudad: r.ciudad, estado: r.estado, pais: r.pais, lat: r.lat, lng: r.lng,
   email: r.email || "", tel: r.tel || "", cedula: r.cedula || "", notas: r.notas, formacion: Array.isArray(r.formacion) ? r.formacion : [], buscaEntrar: r.busca_entrar,
   registrado: !!r.registrado, rol: r.rol, invitedBy: r.invited_by, creadoPor: r.creado_por, aceptoPrivacidad: r.acepto_privacidad, verificado: true, tieneCedula: !!r.tiene_cedula });
@@ -1238,7 +1520,7 @@ async function obCreateProfile() {
   let c = null; try { c = await geocodeCity(ciudad, pais); } catch (e) {}
   const lat = c ? c[1] : fb[1], lng = c ? c[0] : fb[0];
   const ubicAprox = !c;
-  const sede = document.getElementById("obSede").value.trim();
+  const sede = normInst(document.getElementById("obSede").value);
   const formacion = sede ? [{ sede, inicio: parseInt(document.getElementById("obIni").value, 10) || null, fin: parseInt(document.getElementById("obFin").value, 10) || null }] : [];
   msg.textContent = t("Creando tu perfil...", "Creating your profile...");
   const r = await sb.rpc("register_profile", {
@@ -2049,7 +2331,7 @@ function populateFilters() {
   fillSelect(fPais, [...new Set(state.doctors.map((d) => d.pais))].sort((a, b) => paisT(a).localeCompare(paisT(b))), "Todos", paisT);
   fillSelect(fInst, unicosTxt(state.doctors.map((d) => d.inst)), "Todas");
   const dl = (id, vals) => { const el = document.getElementById(id); if (el) el.innerHTML = vals.map((e) => "<option value=\"" + esc(e) + "\">").join(""); };
-  dl("instList", unicosTxt(state.doctors.map((d) => d.inst)));
+  dl("instList", unicosTxt(INST_CATALOGO.map((x) => x[0]).concat(state.doctors.map((d) => d.inst)).concat(state.doctors.flatMap((d) => (d.formacion || []).map((f) => f.sede)))));
   dl("ciudadList", unicosTxt(state.doctors.map((d) => d.ciudad)));
   dl("estadoList", unicosTxt(ESTADOS_MX.concat(state.doctors.map((d) => d.estado))));
   fillEspDatalists();
@@ -2318,7 +2600,7 @@ document.getElementById("formDoctor").addEventListener("submit", async (ev) => {
     formacion: [], buscaEntrar: dBusca.value.trim(),
     registrado: prev ? (prev.registrado !== false) : false
   };
-  const dsede = dSede.value.trim();
+  const dsede = normInst(dSede.value);
   if (dsede) doc.formacion.push({ sede: dsede, inicio: parseInt(dIni.value, 10) || null, fin: parseInt(dFin.value, 10) || null });
   // Ubicación automática: si no hay coordenadas o cambió la ciudad/país, buscarlas; si falla, centro del país
   const cityChanged = prev && ((prev.ciudad || "").trim().toLowerCase() !== doc.ciudad.toLowerCase() || (prev.pais || "").trim().toLowerCase() !== doc.pais.toLowerCase());
