@@ -970,12 +970,12 @@ const INST_CATALOGO = [
   ["PEMEX (Servicios de Salud)", ["pemex", "hospital pemex", "hospital central pemex", "petroleos mexicanos"]],
   ["SEDENA (Servicio de Sanidad Militar)", ["sedena", "hospital central militar", "sanidad militar", "escuela militar de medicina", "hospital militar"]],
   ["SEMAR (Sanidad Naval)", ["semar", "hospital naval", "centro medico naval", "sanidad naval"]],
-  ["Secretaría de Salud (SSA)", ["ssa", "secretaria de salud", "salud", "servicios de salud", "imss bienestar", "insabi"]],
+  ["Secretaría de Salud (SSA)", ["ssa", "secretaria de salud", "secretaria de salud federal", "insabi"]],
+  ["IMSS-Bienestar", ["imss bienestar", "imss-bienestar", "imss prospera", "imss oportunidades", "imss solidaridad"]],
   ["DIF", ["dif", "sistema dif"]],
   ["Cruz Roja Mexicana", ["cruz roja", "cruz roja mexicana"]],
 
   // ===== Hospitales e institutos de referencia =====
-  ["Hospital General de México Dr. Eduardo Liceaga", ["hospital general de mexico", "hgm", "hospital general de mexico eduardo liceaga", "hospital general de mexico dr eduardo liceaga", "hgm liceaga"]],
   ["Centro Médico Nacional Siglo XXI (IMSS)", ["centro medico nacional siglo xxi", "cmn siglo xxi", "siglo xxi", "cmn sxxi", "hospital de especialidades siglo xxi", "he cmn siglo xxi"]],
   ["Centro Médico Nacional La Raza (IMSS)", ["la raza", "centro medico nacional la raza", "cmn la raza", "hospital de especialidades la raza", "hospital general la raza"]],
   ["Centro Médico Nacional 20 de Noviembre (ISSSTE)", ["20 de noviembre", "cmn 20 de noviembre", "centro medico nacional 20 de noviembre", "hospital 20 de noviembre"]],
@@ -991,9 +991,6 @@ const INST_CATALOGO = [
   ["Instituto Nacional de Psiquiatría Ramón de la Fuente", ["instituto nacional de psiquiatria", "psiquiatria ramon de la fuente"]],
   ["Instituto Nacional de Geriatría", ["instituto nacional de geriatria", "inger"]],
   ["Instituto Nacional de Salud Pública (INSP)", ["insp", "instituto nacional de salud publica"]],
-  ["Hospital Juárez de México", ["hospital juarez", "hospital juarez de mexico"]],
-  ["Hospital General Dr. Manuel Gea González", ["gea gonzalez", "hospital gea gonzalez", "hospital general manuel gea gonzalez"]],
-  ["Hospital de la Mujer (CDMX)", ["hospital de la mujer"]],
   ["Hospital Ángeles", ["hospital angeles", "angeles", "grupo angeles", "hospitales angeles"]],
   ["Hospital ABC (Centro Médico ABC)", ["abc", "hospital abc", "centro medico abc", "american british cowdray", "abc observatorio", "abc santa fe"]],
   ["Médica Sur", ["medica sur", "hospital medica sur"]],
@@ -1007,20 +1004,6 @@ const INST_CATALOGO = [
   ["OCA Hospital (Monterrey)", ["oca hospital", "hospital oca", "oca"]],
   ["Hospital Metropolitano Dr. Bernardo Sepúlveda (Nuevo León)", ["hospital metropolitano", "metropolitano bernardo sepulveda", "hospital metropolitano monterrey"]],
   ["Hospital Civil de Guadalajara", ["hospital civil de guadalajara", "hospital civil", "hospital civil fray antonio alcalde", "hospital civil juan i menchaca", "antiguo hospital civil", "nuevo hospital civil"]],
-  ["Hospital Universitario de Puebla (BUAP)", ["hospital universitario de puebla", "hospital universitario buap", "hup"]],
-  ["Hospital Universitario de Saltillo (UAdeC)", ["hospital universitario de saltillo", "hospital universitario saltillo"]],
-  ["Hospital Universitario de Torreón (UAdeC)", ["hospital universitario de torreon", "hospital universitario torreon"]],
-  ["Hospital Central Dr. Ignacio Morones Prieto (SLP)", ["hospital central slp", "hospital central san luis potosi", "morones prieto", "hospital central ignacio morones prieto", "hospital central"]],
-  ["Hospital General de Culiacán", ["hospital general de culiacan"]],
-  ["Hospital General de Tijuana", ["hospital general de tijuana", "hospital general tijuana"]],
-  ["Hospital General de Mexicali", ["hospital general de mexicali"]],
-  ["Hospital General de León", ["hospital general de leon", "hospital general leon"]],
-  ["Hospital Regional de Alta Especialidad del Bajío (HRAEB)", ["hraeb", "hospital regional de alta especialidad del bajio", "alta especialidad del bajio"]],
-  ["Hospital Regional de Alta Especialidad de Ixtapaluca", ["hrae ixtapaluca", "alta especialidad ixtapaluca"]],
-  ["Hospital Regional de Alta Especialidad de Oaxaca", ["hrae oaxaca", "alta especialidad oaxaca"]],
-  ["Hospital Regional de Alta Especialidad de la Península de Yucatán", ["hrae peninsula de yucatan", "hraepy", "alta especialidad merida"]],
-  ["Hospital Regional de Alta Especialidad de Ciudad Victoria", ["hrae ciudad victoria", "alta especialidad ciudad victoria", "bicentenario 2010"]],
-  ["Hospital Regional de Alta Especialidad de Zumpango", ["hrae zumpango", "alta especialidad zumpango"]],
   ["Hospital Amerimed", ["amerimed", "hospital amerimed"]],
   ["Hospital Galenia (Cancún)", ["galenia", "hospital galenia"]],
   ["Hospital Puerta de Hierro", ["puerta de hierro", "hospital puerta de hierro"]],
@@ -1031,109 +1014,7 @@ const INST_CATALOGO = [
   ["Hospital Almater (Mexicali)", ["almater", "hospital almater"]],
   ["Hospital CIMA", ["cima", "hospital cima"]],
   ["Hospital San José de Hermosillo", ["hospital san jose de hermosillo", "san jose hermosillo"]],
-  ["Hospital General de Zona (IMSS)", ["hgz", "hospital general de zona", "hospital general de zona imss"]],
-  ["Hospital General Regional (IMSS)", ["hgr", "hospital general regional", "hospital general regional imss"]],
-  ["Unidad Médica de Alta Especialidad (UMAE, IMSS)", ["umae", "unidad medica de alta especialidad"]],
-  ["Unidad de Medicina Familiar (UMF, IMSS)", ["umf", "unidad de medicina familiar"]],
-  ["Hospital Rural IMSS-Bienestar", ["hospital rural", "imss bienestar hospital rural", "hospital rural imss"]],
-  ["Hospital General de Piedras Negras", ["hospital general de piedras negras", "hospital general piedras negras"]],
   ["Clínica de Especialistas (Piedras Negras)", ["clinica de especialistas", "clinica de especialistas piedras negras"]],
-  ["Hospital General de Nuevo Laredo", ["hospital general de nuevo laredo", "hospital general nuevo laredo"]],
-  ["Hospital General de Saltillo", ["hospital general de saltillo", "hospital general saltillo"]],
-  ["Hospital General de Torreón", ["hospital general de torreon"]],
-  ["Hospital General de Monclova", ["hospital general de monclova", "hospital amparo pape"]],
-  ["Hospital General de Acuña", ["hospital general de acuna", "hospital general acuna"]],
-  ["Hospital General de Morelia", ["hospital general de morelia", "hospital general dr miguel silva", "miguel silva"]],
-  ["Hospital General de Toluca", ["hospital general de toluca", "hospital general dr nicolas san juan", "nicolas san juan"]],
-  ["Hospital General de Ecatepec", ["hospital general de ecatepec", "hospital general las americas", "las americas ecatepec", "hospital general jose maria rodriguez"]],
-  ["Centro Médico ISSEMYM Ecatepec", ["cmi ecatepec", "centro medico issemym ecatepec", "centro medico issemym", "issemym ecatepec", "cmi"]],
-  ["Hospital General de Querétaro", ["hospital general de queretaro", "hospital general queretaro"]],
-  ["Hospital General de Durango", ["hospital general de durango", "hospital general 450"]],
-  ["Hospital General de Chihuahua", ["hospital general de chihuahua", "hospital central del estado chihuahua", "hospital central chihuahua"]],
-  ["Hospital General de Ciudad Juárez", ["hospital general de ciudad juarez", "hospital general juarez"]],
-  ["Hospital General de Hermosillo", ["hospital general de hermosillo", "hospital general del estado de sonora"]],
-  ["Hospital General de Tampico", ["hospital general de tampico", "hospital general dr carlos canseco", "carlos canseco"]],
-  ["Hospital General de Reynosa", ["hospital general de reynosa"]],
-  ["Hospital General de Matamoros", ["hospital general de matamoros", "hospital general alfredo pumarejo"]],
-  ["Hospital General de Veracruz", ["hospital general de veracruz", "hospital regional de veracruz"]],
-  ["Hospital General de Puebla", ["hospital general de puebla", "hospital general del sur puebla", "hospital general zona norte puebla"]],
-  ["Hospital General de Acapulco", ["hospital general de acapulco", "hospital general el quemado"]],
-  ["Hospital General de Cancún", ["hospital general de cancun", "hospital general jesus kumate"]],
-  ["Hospital General de Mérida (O'Horán)", ["hospital ohoran", "hospital general agustin ohoran", "o horan", "hospital general de merida"]],
-  ["Hospital General de Villahermosa (Rovirosa)", ["hospital rovirosa", "hospital general gustavo rovirosa", "hospital general de villahermosa"]],
-  ["Hospital General de Oaxaca (Aurelio Valdivieso)", ["hospital aurelio valdivieso", "hospital general de oaxaca", "aurelio valdivieso"]],
-  ["Hospital General de Tuxtla Gutiérrez", ["hospital general de tuxtla", "hospital general de tuxtla gutierrez", "hospital de especialidades vida mejor"]],
-  ["Hospital General de Aguascalientes (Hidalgo)", ["hospital hidalgo", "centenario hospital miguel hidalgo", "hospital general de aguascalientes"]],
-  ["Hospital General de Zacatecas", ["hospital general de zacatecas", "hospital general luz gonzalez cosio"]],
-  ["Hospital General de San Luis Potosí (IMSS HGZ 50)", ["hgz 50", "hgz 50 san luis potosi", "hospital general de zona 50"]],
-  ["Hospital General de Xalapa", ["hospital general de xalapa", "hospital luis f nachon", "nachon"]],
-  ["Hospital General de Pachuca", ["hospital general de pachuca", "hospital general pachuca"]],
-  ["Hospital General de Cuernavaca", ["hospital general de cuernavaca", "hospital jose g parres", "parres"]],
-  ["Hospital General de Tepic", ["hospital general de tepic", "hospital civil de tepic"]],
-  ["Hospital General de Colima", ["hospital general de colima", "hospital regional universitario colima"]],
-  ["Hospital General de Tlaxcala", ["hospital general de tlaxcala"]],
-  ["Hospital General de Campeche", ["hospital general de campeche", "hospital general de especialidades campeche"]],
-  ["Hospital General de La Paz", ["hospital general de la paz", "hospital juan maria de salvatierra", "salvatierra"]],
-  ["Hospital General de Chetumal", ["hospital general de chetumal"]],
-  ["Hospital General de Irapuato", ["hospital general de irapuato"]],
-  ["Hospital General de Celaya", ["hospital general de celaya"]],
-  ["Hospital General de Uruapan", ["hospital general de uruapan", "hospital general dr pedro daniel martinez"]],
-  ["Hospital General de Zamora", ["hospital general de zamora"]],
-  ["Hospital General de Los Mochis", ["hospital general de los mochis"]],
-  ["Hospital General de Mazatlán", ["hospital general de mazatlan", "hospital general dr martiniano carvajal"]],
-  ["Hospital General de Ciudad Obregón", ["hospital general de ciudad obregon", "hospital general obregon"]],
-  ["Hospital General de Ensenada", ["hospital general de ensenada"]],
-  ["Hospital General de Nogales", ["hospital general de nogales"]],
-  ["Hospital General de Gómez Palacio", ["hospital general de gomez palacio"]],
-  ["Hospital General de Salamanca", ["hospital general de salamanca"]],
-  ["Hospital General de Tapachula", ["hospital general de tapachula"]],
-  ["Hospital General de Poza Rica", ["hospital general de poza rica"]],
-  ["Hospital General de Coatzacoalcos", ["hospital general de coatzacoalcos", "hospital general valentin gomez farias"]],
-  ["Hospital General de Minatitlán", ["hospital general de minatitlan"]],
-  ["Hospital General de Orizaba", ["hospital general de orizaba", "hospital regional de rio blanco", "rio blanco"]],
-  ["Hospital General de Ciudad Victoria", ["hospital general de ciudad victoria", "hospital general dr norberto trevino zapata", "norberto trevino"]],
-  ["Hospital General de Tlalnepantla", ["hospital general de tlalnepantla", "hospital general valle ceylan"]],
-  ["Hospital General de Naucalpan", ["hospital general de naucalpan", "hospital general maximiliano ruiz castaneda"]],
-  ["Hospital General de Atizapán", ["hospital general de atizapan", "hospital general salvador gonzalez herrejon"]],
-  ["Hospital General de Chalco", ["hospital general de chalco"]],
-  ["Hospital General de Texcoco", ["hospital general de texcoco", "hospital general guadalupe victoria"]],
-  ["Hospital General de Cuautitlán", ["hospital general de cuautitlan", "hospital general jose vicente villada"]],
-  ["Hospital General de Nezahualcóyotl", ["hospital general de nezahualcoyotl", "hospital general la perla", "la perla neza"]],
-  ["Hospital General Xoco (CDMX)", ["hospital xoco", "hospital general xoco", "xoco"]],
-  ["Hospital General Balbuena (CDMX)", ["hospital balbuena", "hospital general balbuena", "balbuena"]],
-  ["Hospital General La Villa (CDMX)", ["hospital la villa", "hospital general la villa"]],
-  ["Hospital General Rubén Leñero (CDMX)", ["ruben lenero", "hospital ruben lenero", "hospital general ruben lenero"]],
-  ["Hospital General de Iztapalapa", ["hospital general de iztapalapa"]],
-  ["Hospital General Ajusco Medio", ["ajusco medio", "hospital general ajusco medio"]],
-  ["Hospital General Dr. Enrique Cabrera", ["enrique cabrera", "hospital enrique cabrera"]],
-  ["Hospital General de Ticomán", ["hospital de ticoman", "hospital general de ticoman", "ticoman"]],
-  ["Hospital General Milpa Alta", ["hospital general milpa alta", "milpa alta"]],
-  ["Hospital General Tláhuac", ["hospital general tlahuac", "tlahuac"]],
-  ["Hospital General Villa (CDMX)", ["hospital general villa"]],
-  ["Hospital Regional Lic. Adolfo López Mateos (ISSSTE)", ["lopez mateos issste", "hospital regional lopez mateos", "hospital lopez mateos"]],
-  ["Hospital Regional 1° de Octubre (ISSSTE)", ["1 de octubre", "hospital regional 1 de octubre", "primero de octubre"]],
-  ["Hospital General Dr. Darío Fernández Fierro (ISSSTE)", ["dario fernandez", "hospital dario fernandez"]],
-  ["Hospital General de Zona 1 (IMSS)", ["hgz 1", "hgz no 1", "hospital general de zona 1"]],
-  ["Hospital de Especialidades Centro Médico Nacional de Occidente (IMSS)", ["centro medico nacional de occidente", "cmno", "cmn occidente", "hospital de especialidades cmno"]],
-  ["Hospital de Especialidades UMAE 25 (IMSS Monterrey)", ["umae 25", "hospital de especialidades 25", "hospital de especialidades numero 25", "he 25", "umae 25 monterrey"]],
-  ["Hospital de Ginecobstetricia UMAE 23 (IMSS Monterrey)", ["umae 23", "hospital de ginecobstetricia 23", "gineco 23"]],
-  ["Hospital de Traumatología UMAE 21 (IMSS Monterrey)", ["umae 21", "hospital de traumatologia 21", "traumatologia 21"]],
-  ["Hospital de Cardiología UMAE 34 (IMSS Monterrey)", ["umae 34", "hospital de cardiologia 34", "cardiologia 34"]],
-  ["UMAE 71 (IMSS Torreón)", ["umae 71", "hospital de especialidades 71", "he 71 torreon"]],
-  ["UMAE 14 (IMSS Veracruz)", ["umae 14", "hospital de especialidades 14"]],
-  ["UMAE 1 Bajío (IMSS León)", ["umae 1 bajio", "hospital de especialidades 1 bajio", "he 1 leon", "t1 leon"]],
-  ["UMAE 2 (IMSS Ciudad Obregón)", ["umae 2", "hospital de especialidades 2 obregon"]],
-  ["UMAE Puebla (IMSS San José)", ["umae puebla", "hospital de especialidades puebla", "umae san jose puebla", "cmn manuel avila camacho"]],
-  ["UMAE Mérida (IMSS Ignacio García Téllez)", ["umae merida", "ignacio garcia tellez", "cmn ignacio garcia tellez"]],
-  ["Hospital de Pediatría CMN Siglo XXI (IMSS)", ["hospital de pediatria siglo xxi", "pediatria cmn siglo xxi"]],
-  ["Hospital de Cardiología CMN Siglo XXI (IMSS)", ["hospital de cardiologia siglo xxi", "cardiologia cmn siglo xxi"]],
-  ["Hospital de Oncología CMN Siglo XXI (IMSS)", ["hospital de oncologia siglo xxi", "oncologia cmn siglo xxi"]],
-  ["Hospital de Ginecobstetricia 4 Luis Castelazo Ayala (IMSS)", ["luis castelazo", "gineco 4", "hospital de ginecobstetricia 4", "castelazo ayala"]],
-  ["Hospital de Ginecobstetricia 3 CMN La Raza (IMSS)", ["gineco 3", "hospital de ginecobstetricia 3", "gineco la raza"]],
-  ["Hospital de Traumatología Magdalena de las Salinas (IMSS)", ["magdalena de las salinas", "traumatologia magdalena de las salinas", "hospital de traumatologia victorio de la fuente narvaez", "victorio de la fuente"]],
-  ["Hospital de Traumatología Lomas Verdes (IMSS)", ["lomas verdes", "traumatologia lomas verdes"]],
-  ["Hospital de Infectología CMN La Raza (IMSS)", ["hospital de infectologia", "infectologia la raza"]],
-  ["Hospital Psiquiátrico Fray Bernardino Álvarez", ["fray bernardino", "hospital psiquiatrico fray bernardino"]],
   ["Shriners Hospital for Children México", ["shriners", "hospital shriners"]],
   ["Hospital Star Médica Infantil Privado", ["infantil privado", "hospital infantil privado"]],
   ["Hospital Médica Sur Lomas", ["medica sur lomas"]],
@@ -1142,12 +1023,6 @@ const INST_CATALOGO = [
   ["Sanatorio Durango", ["sanatorio durango"]],
   ["Hospital San Ángel Inn", ["san angel inn", "hospital san angel inn"]],
   ["Hospital Torre Médica", ["torre medica"]],
-  ["Hospital Central Norte PEMEX", ["hospital central norte", "central norte pemex"]],
-  ["Hospital Central Sur PEMEX", ["hospital central sur", "central sur pemex", "picacho"]],
-  ["Hospital Militar Regional", ["hospital militar regional"]],
-  ["Hospital Central Militar", ["hospital central militar", "central militar"]],
-  ["Hospital General Naval de Alta Especialidad", ["hospital naval de alta especialidad", "hospital general naval"]],
-  ["Centro Médico Nacional del Noreste (IMSS Monterrey)", ["cmn del noreste", "centro medico nacional del noreste", "cmn noreste"]]
 ];
 // Índice alias → nombre oficial (se construye una vez)
 const _instExacto = new Map(), _instParcial = [];
@@ -1160,7 +1035,9 @@ INST_CATALOGO.forEach(([canon, aliases]) => {
   });
 });
 _instParcial.sort((a, b) => b[0].length - a[0].length);   // el alias más largo manda
-const INST_CADENAS = new Set(["Hospital Ángeles", "Christus Muguerza", "Star Médica", "Hospital CIMA", "IMSS", "ISSSTE", "Hospital Amerimed"]);
+const INST_CADENAS = new Set(["Hospital Ángeles", "Christus Muguerza", "Star Médica", "Hospital CIMA", "IMSS", "ISSSTE", "ISSEMYM", "IMSS-Bienestar", "PEMEX (Servicios de Salud)", "Hospital Amerimed"]);
+// Unidades IMSS escritas a mano: "HGZ 11 Piedras Negras" → "IMSS HGZ 11 Piedras Negras"
+const RE_IMSS_UNIDAD = /^(hgz|hgr|hgs|hgsz|hgsmf|hgzmf|umf|umae|hes|hgp|hgo|umaa|hp)\s*(?:no\.?\s*|n°\s*|#\s*)?\d+/i;
 function instCanon(s) {
   const k = claveTxt(s).replace(/[.,()]/g, "").replace(/\s+/g, " ").trim();
   if (!k) return null;
@@ -1169,11 +1046,14 @@ function instCanon(s) {
   for (const [a, canon] of _instParcial) {
     if (!kk.includes(" " + a + " ")) continue;
     if (INST_CADENAS.has(canon)) {
-      // Cadenas: conservar la sede ("Hospital Ángeles Valle Oriente", "IMSS HGZ 11")
-      const resto = k.replace(a, "").replace(/\s+/g, " ").trim();
+      // Cadenas/sistemas: conservar la sede ("Hospital Ángeles Valle Oriente", "ISSEMYM Centro Médico Ecatepec")
       const original = String(s).replace(/\s+/g, " ").trim();
-      const restoOrig = original.slice(original.length - resto.length);   // misma longitud, con acentos/mayúsculas originales
-      return resto ? canon + " " + tituloCaso(restoOrig.length === resto.length ? restoOrig : resto) : canon;
+      const plano = sinAcentos(original).toLowerCase();          // misma longitud que original, sin acentos
+      const idx = plano.search(new RegExp("(^|[^a-z0-9])" + a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z0-9]|$)"));
+      let resto = original;
+      if (idx >= 0) { const start = plano.indexOf(a, idx); resto = (original.slice(0, start) + " " + original.slice(start + a.length)); }
+      resto = resto.replace(/[\s,()./-]+/g, " ").trim();
+      return resto ? canon + " " + tituloCaso(resto) : canon;
     }
     return canon;
   }
@@ -1222,6 +1102,7 @@ function conectarBusquedaInst(inputId, listId) {
 function normInst(s) {
   s = String(s || "").replace(/\s*\/\s*/g, " / ").replace(/\s+/g, " ").trim(); if (!s) return s;
   if (s.includes(" / ")) return s.split(" / ").map((p) => instCanon(p) || tituloCaso(p)).join(" / ");
+  if (RE_IMSS_UNIDAD.test(s)) return "IMSS " + tituloCaso(s).replace(/^(hgz|hgr|hgs|hgsz|hgsmf|hgzmf|umf|umae|hes|hgp|hgo|umaa|hp)\b/i, (m) => m.toUpperCase());
   return instCanon(s) || tituloCaso(s);
 }
 function normCiudad(s) { s = tituloCaso(s); const k = claveTxt(s); if (k === "cdmx" || k === "mexico df" || k === "mexico d.f" || k === "ciudad de mexico") return "Ciudad de México"; return s; }
