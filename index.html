@@ -361,6 +361,8 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
       </div>
       <label class="obLabel">País</label>
       <input id="obPais" value="México">
+      <label class="obLabel">¿Dónde estudiaste medicina? (universidad)</label>
+      <input id="obUni" list="instList" placeholder="Ej. UANL, UNAM, Tec de Monterrey">
       <label class="obLabel">¿Dónde hiciste tu especialidad? (para reencontrar a tu generación)</label>
       <input id="obSede" list="instList" placeholder="Ej. Hospital Universitario UANL">
       <div class="twoCol">
@@ -434,8 +436,12 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
           <select id="fEsp"><option value="">Todas</option></select>
           <label class="lbl">País</label>
           <select id="fPais"><option value="">Todos</option></select>
-          <label class="lbl">Institución</label>
-          <select id="fInst"><option value="">Todas</option></select>
+          <label class="lbl">Hospital actual</label>
+          <select id="fInst"><option value="">Todos</option></select>
+          <label class="lbl">Universidad (medicina)</label>
+          <select id="fUni"><option value="">Todas</option></select>
+          <label class="lbl">Sede de especialidad</label>
+          <select id="fSede"><option value="">Todas</option></select>
           <h3>Especialidades</h3>
           <div id="espLegend"></div>
           <h3>Tipo de trazo</h3>
@@ -510,6 +516,8 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
     <p class="dlgsub" style="margin-top:-4px">Tu correo y teléfono nunca se muestran: solo los ve quien te pida contacto y tú aceptes.</p>
     <label>Busca entrar a (opcional)</label>
     <input id="dBusca" placeholder="Ej. Cirugía plástica">
+    <label>Universidad donde estudió medicina (opcional)</label>
+    <input id="dUni" list="instList" placeholder="Ej. UANL, UNAM, Tec de Monterrey">
     <label>Sede donde hizo la especialidad (opcional)</label>
     <input id="dSede" list="instList" placeholder="Hospital Universitario UANL">
     <div class="twoCol">
@@ -733,7 +741,9 @@ const DICT = {
   // Map tools / aside
   "Vista:": "View:", "Red de relaciones": "Relationship network", "Mapa mundial": "World map", "Buscar médico...": "Search physician...",
   "Filtros": "Filters", "＋ Médico": "＋ Physician", "＋ Conexión": "＋ Connection",
-  "Todas": "All", "Todos": "All", "Institución": "Institution", "Especialidades": "Specialties", "Tipo de trazo": "Line type",
+  "Todas": "All", "Todos": "All", "Institución": "Institution", "Hospital actual": "Current hospital", "Universidad (medicina)": "Medical school", "Sede de especialidad": "Residency site",
+  "¿Dónde estudiaste medicina? (universidad)": "Where did you study medicine? (university)", "Universidad donde estudió medicina (opcional)": "Medical school (optional)",
+  "Especialidades": "Specialties", "Tipo de trazo": "Line type",
   "Mostrar": "Show", "Solo médicos conectados": "Only connected physicians",
   "Mi red (hasta 2 grados)": "My network (up to 2 degrees)", "Todos los médicos conectados": "All connected physicians", "Todos los médicos": "All physicians",
   "El mapa muestra la genealogía profesional: quién formó a quién y quién ha trabajado con quién. Toca un médico para ver su red.": "The map shows professional genealogy: who trained whom and who has worked with whom. Tap a physician to see their network.",
@@ -1067,6 +1077,7 @@ function instCanon(s) {
 // Institución compuesta ("Hospital Inglés / Clínica de Especialistas") → partes; el filtro reconoce cada una
 function instPartes(s) { s = String(s || "").trim(); if (!s) return []; if (_instExacto.has(instKey(s))) return [s]; return s.split(" / ").map((p) => p.trim()).filter(Boolean); }
 function tieneInst(d, inst) { const k = instKey(inst); return !!k && instPartes(d.inst).some((p) => instKey(p) === k); }
+function sedesDe(d) { return (d.formacion || []).map((f) => f && f.sede).filter(Boolean); }
 /* ===== Búsqueda en vivo de unidades reales (tabla instituciones: 7,345 unidades CLUES + catálogo local) ===== */
 const _instCache = new Map();
 async function buscarInstituciones(q) {
@@ -1106,7 +1117,7 @@ function conectarBusquedaInst(inputId, listId) {
     }, 220);
   });
 }
-["obInst", "dInst", "obSede", "dSede"].forEach((id) => conectarBusquedaInst(id, "instList"));
+["obInst", "dInst", "obSede", "dSede", "obUni", "dUni"].forEach((id) => conectarBusquedaInst(id, "instList"));
 function normInst(s) {
   s = String(s || "").replace(/\s*\/\s*/g, " / ").replace(/\s+/g, " ").trim(); if (!s) return s;
   if (_instExacto.has(instKey(s))) return _instExacto.get(instKey(s));          // nombre completo conocido (aunque traiga "/")
@@ -1115,8 +1126,8 @@ function normInst(s) {
   return instCanon(s) || tituloCaso(s);
 }
 function normCiudad(s) { s = tituloCaso(s); const k = claveTxt(s); if (k === "cdmx" || k === "mexico df" || k === "mexico d.f" || k === "ciudad de mexico") return "Ciudad de México"; return s; }
-function normDocTextos(d) { d.estado = normEstado(d.estado, d.pais); d.inst = normInst(d.inst); d.ciudad = normCiudad(d.ciudad); d.pais = tituloCaso(d.pais); if (Array.isArray(d.formacion)) d.formacion.forEach((f) => { if (f && f.sede) f.sede = normInst(f.sede); }); return d; }
-const rowToDoc = (r) => normDocTextos({ id: r.id, nombre: r.nombre, esp: r.esp, sub: r.sub, inst: r.inst, ciudad: r.ciudad, estado: r.estado, pais: r.pais, lat: r.lat, lng: r.lng,
+function normDocTextos(d) { d.estado = normEstado(d.estado, d.pais); d.inst = normInst(d.inst); d.universidad = normInst(d.universidad); d.ciudad = normCiudad(d.ciudad); d.pais = tituloCaso(d.pais); if (Array.isArray(d.formacion)) d.formacion.forEach((f) => { if (f && f.sede) f.sede = normInst(f.sede); }); return d; }
+const rowToDoc = (r) => normDocTextos({ id: r.id, nombre: r.nombre, esp: r.esp, sub: r.sub, inst: r.inst, universidad: r.universidad || "", ciudad: r.ciudad, estado: r.estado, pais: r.pais, lat: r.lat, lng: r.lng,
   email: r.email || "", tel: r.tel || "", cedula: r.cedula || "", notas: r.notas, formacion: Array.isArray(r.formacion) ? r.formacion : [], buscaEntrar: r.busca_entrar,
   registrado: !!r.registrado, rol: r.rol, invitedBy: r.invited_by, creadoPor: r.creado_por, aceptoPrivacidad: r.acepto_privacidad, verificado: true, tieneCedula: !!r.tiene_cedula });
 const rowToConn = (r) => ({ id: r.id, from: r.from_id, to: r.to_id, tipo: r.tipo, detalle: r.detalle, estado: r.estado, creadaPor: r.creada_por });
@@ -1142,7 +1153,7 @@ function reportarProblema() {
   if (REPORTE_WA) window.open("https://wa.me/" + REPORTE_WA + "?text=" + encodeURIComponent(txt), "_blank");
   else window.location.href = "mailto:" + REPORTE_MAIL + "?subject=" + encodeURIComponent("Reporte MEDNODE beta") + "&body=" + encodeURIComponent(txt);
 }
-const APP_VERSION = "2026-09-12";
+const APP_VERSION = "2026-09-14";
 /* ============ APP INSTALABLE (PWA) ============ */
 let _pwaPrompt = null;
 const PWA_STANDALONE = window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true);
@@ -1460,6 +1471,9 @@ async function obCreateProfile() {
     p_rel: obInviteCode ? ((document.getElementById("obRel") || {}).value || "amistad") : ""
   });
   if (r.error) { msg.style.color = "#b03434"; msg.textContent = friendlyErr(r.error); return; }
+  // Universidad: se guarda aparte sobre el propio perfil (register_profile no cambia)
+  const uniV = normInst((document.getElementById("obUni") || {}).value);
+  if (uniV && r.data) { try { await sb.from("doctors").update({ universidad: uniV }).eq("id", r.data); } catch (e) {} }
   try { await cloudLoad(); } catch (e) { sbErr(e); return; }
   clearInvite();
   onboard.classList.remove("show");
@@ -1612,7 +1626,7 @@ function renderDirectory() {
       "<div class=\"top\">" + avatar(d) +
         "<div><div class=\"nm\">" + esc(d.nombre) + "</div><div class=\"esp\">" + esc(espT(d.esp)) + (d.sub ? " · " + esc(espT(d.sub)) : "") + "</div></div>" +
       "</div>" +
-      "<div class=\"meta\">" + (d.inst ? esc(d.inst) + "<br>" : "") + esc(d.ciudad) + (d.estado ? ", " + esc(d.estado) : "") + " · " + esc(paisT(d.pais)) + (d.formacion && d.formacion[0] ? "<br><span style=\"color:#8b91a0\">" + t("Formación: ", "Training: ") + esc(d.formacion[0].sede) + "</span>" : "") + "</div>" +
+      "<div class=\"meta\">" + (d.inst ? esc(d.inst) + "<br>" : "") + esc(d.ciudad) + (d.estado ? ", " + esc(d.estado) : "") + " · " + esc(paisT(d.pais)) + (d.universidad ? "<br><span style=\"color:#8b91a0\">" + t("Universidad: ", "Medical school: ") + esc(d.universidad) + "</span>" : "") + (d.formacion && d.formacion[0] ? "<br><span style=\"color:#8b91a0\">" + t("Especialidad en: ", "Residency at: ") + esc(d.formacion[0].sede) + "</span>" : "") + "</div>" +
       memberBadge(d) +
     "</div>"
   ).join("");
@@ -1685,7 +1699,9 @@ function renderMyProfile() {
       memberBadge(d) + "</div>" +
     "</div>" +
     contactosHTML + solicitudesHTML +
-    "<div class=\"infoRow\"><div class=\"k\">Institución</div><div class=\"v\">" + (esc(d.inst) || "—") + "</div></div>" +
+    "<div class=\"infoRow\"><div class=\"k\">" + t("Hospital actual", "Current hospital") + "</div><div class=\"v\">" + (esc(d.inst) || "—") + "</div></div>" +
+    "<div class=\"infoRow\"><div class=\"k\">" + t("Universidad", "Medical school") + "</div><div class=\"v\">" + (esc(d.universidad) || "<span style=\"color:#8a919c\">— <button class=\"btn small\" style=\"margin-left:6px\" onclick=\"openDoctorDlg('" + d.id + "')\">" + tr("Agregar") + "</button></span>") + "</div></div>" +
+    "<div class=\"infoRow\"><div class=\"k\">" + t("Especialidad en", "Residency at") + "</div><div class=\"v\">" + (d.formacion && d.formacion[0] && d.formacion[0].sede ? esc(d.formacion[0].sede) + (d.formacion[0].inicio ? " (" + esc(d.formacion[0].inicio) + (d.formacion[0].fin ? "–" + esc(d.formacion[0].fin) : "") + ")" : "") : "—") + "</div></div>" +
     "<div class=\"infoRow\"><div class=\"k\">Ubicación</div><div class=\"v\">" + esc(d.ciudad) + (d.estado ? ", " + esc(d.estado) : "") + " · " + esc(paisT(d.pais)) + "</div></div>" +
     "<div class=\"infoRow\"><div class=\"k\">Correo</div><div class=\"v\">" + (esc(d.email) || "—") + " <span style=\"color:#8a919c;font-size:12px\">" + t("(privado: solo lo ve quien te pida contacto y aceptes)", "(private: seen only by those you grant contact to)") + "</span></div></div>" +
     "<div class=\"infoRow\"><div class=\"k\">WhatsApp / teléfono</div><div class=\"v\">" + (esc(d.tel) || "<span style=\"color:#8a919c\">— <button class=\"btn small\" style=\"margin-left:6px\" onclick=\"openDoctorDlg('" + d.id + "')\">" + tr("Agregar") + "</button></span>") + "</div></div>" +
@@ -1992,7 +2008,7 @@ function getPositions() {
 }
 function activeTipos() { return new Set([...document.querySelectorAll(".fTipo:checked")].map((c) => c.value)); }
 function visibleDoctors() {
-  const esp = fEsp.value, pais = fPais.value, inst = fInst.value;
+  const esp = fEsp.value, pais = fPais.value, inst = fInst.value, uni = fUni.value, sede = fSede.value;
   const me = state.session.currentUserId;
   const alEl = document.getElementById("fAlcance");
   let alcance = alEl ? alEl.value : "conectados";
@@ -2000,13 +2016,13 @@ function visibleDoctors() {
   // Regla de escala: por defecto solo se dibuja MI red (yo + conexiones + conexiones de mis conexiones).
   // Con miles de médicos nunca se dibuja todo; al resto se llega buscando o filtrando.
   const miRed = alcance === "mired" ? egoNetwork(me, 2) : null;
-  const hayFiltro = !!(esp || pais || inst);
+  const hayFiltro = !!(esp || pais || inst || uni || sede);
   // Si seleccioné a alguien fuera de mi red (buscador), los médicos del camino hasta él también se dibujan
   const ruta = new Set();
   if (selectedId && selectedId !== me) { const ch = pathTo(selectedId); if (ch) ch.forEach((s) => { ruta.add(s.from); ruta.add(s.to); }); }
   return state.doctors.filter((d) => {
     if (d.id === me || d.id === selectedId || ruta.has(d.id)) return true;
-    const passF = (!esp || canonEsp(d.esp) === esp) && (!pais || claveTxt(d.pais) === claveTxt(pais)) && (!inst || tieneInst(d, inst));
+    const passF = (!esp || canonEsp(d.esp) === esp) && (!pais || claveTxt(d.pais) === claveTxt(pais)) && (!inst || tieneInst(d, inst)) && (!uni || instKey(d.universidad) === instKey(uni)) && (!sede || sedesDe(d).some((s) => instKey(s) === instKey(sede)));
     if (!passF) return false;
     if (alcance === "todos") return true;
     if (alcance === "conectados") return degOf(d.id) > 0;
@@ -2260,7 +2276,9 @@ function populateFilters() {
   fillSelect(fEsp, [...new Set(state.doctors.map((d) => canonEsp(d.esp)))].sort((a, b) => espT(a).localeCompare(espT(b))), "Todas", espT);
   fillSelect(fPais, [...new Set(state.doctors.map((d) => d.pais))].sort((a, b) => paisT(a).localeCompare(paisT(b))), "Todos", paisT);
   // Una opción por hospital real: las instituciones compuestas ("A / B") se separan y se deduplican sin acentos ni puntuación
-  fillSelect(fInst, unicosTxt(state.doctors.flatMap((d) => instPartes(d.inst)), instKey), "Todas");
+  fillSelect(fInst, unicosTxt(state.doctors.flatMap((d) => instPartes(d.inst)), instKey), "Todos");
+  fillSelect(fUni, unicosTxt(state.doctors.map((d) => d.universidad), instKey), "Todas");
+  fillSelect(fSede, unicosTxt(state.doctors.flatMap(sedesDe), instKey), "Todas");
   const dl = (id, vals) => { const el = document.getElementById(id); if (el) el.innerHTML = vals.map((e) => "<option value=\"" + esc(e) + "\">").join(""); };
   dl("instList", unicosTxt(state.doctors.flatMap((d) => instPartes(d.inst)).concat(state.doctors.flatMap((d) => (d.formacion || []).map((f) => f.sede))), instKey));
   dl("ciudadList", unicosTxt(state.doctors.map((d) => d.ciudad)));
@@ -2322,7 +2340,7 @@ tipoFilters.innerHTML = Object.entries(TIPOS).map(([k, t]) =>
   "<span class=\"swatch" + (t.dash ? " dash" : "") + "\" style=\"" + (t.dash ? "" : "background:" + t.color) + "\"></span><span>" + t.label + "</span></label>").join("");
 document.querySelectorAll(".fTipo").forEach((c) => c.addEventListener("change", render));
 fillEspDatalists();
-["fEsp", "fPais", "fInst"].forEach((id) => document.getElementById(id).addEventListener("change", render));
+["fEsp", "fPais", "fInst", "fUni", "fSede"].forEach((id) => document.getElementById(id).addEventListener("change", render));
 document.getElementById("fSoloConn").addEventListener("change", () => { if (mapReady) render(); });
 document.getElementById("fAlcance").addEventListener("change", () => { if (mapReady) render(); });
 
@@ -2373,8 +2391,9 @@ function openProfile(id) {
     "<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:8px\">" +
     "<div style=\"width:42px;height:42px;border-radius:50%;background:" + espColor(d.esp) + ";color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;flex-shrink:0\">" + initials(d.nombre) + "</div>" +
     "<div><h3 style=\"margin:0\">" + esc(d.nombre) + "</h3><div class=\"sub\" style=\"margin:0\">" + esc(espT(d.esp)) + (d.sub ? " · " + esc(espT(d.sub)) : "") + " · " + esc(d.ciudad) + ", " + esc(paisT(d.pais)) + "</div></div></div>" +
-    (d.inst ? "<div class=\"row\"><b>Institución:</b> " + esc(d.inst) + "</div>" : "") +
-    (d.formacion && d.formacion[0] ? "<div class=\"row\"><b>Formación:</b> " + esc(d.formacion[0].sede) + (d.formacion[0].inicio ? " (" + d.formacion[0].inicio + (d.formacion[0].fin ? "–" + d.formacion[0].fin : "") + ")" : "") + "</div>" : "") +
+    (d.inst ? "<div class=\"row\"><b>" + t("Hospital actual:", "Current hospital:") + "</b> " + esc(d.inst) + "</div>" : "") +
+    (d.universidad ? "<div class=\"row\"><b>" + t("Universidad:", "Medical school:") + "</b> " + esc(d.universidad) + "</div>" : "") +
+    (d.formacion && d.formacion[0] ? "<div class=\"row\"><b>" + t("Especialidad en:", "Residency at:") + "</b> " + esc(d.formacion[0].sede) + (d.formacion[0].inicio ? " (" + d.formacion[0].inicio + (d.formacion[0].fin ? "–" + d.formacion[0].fin : "") + ")" : "") + "</div>" : "") +
     (d.registrado === false ? "<div class=\"row\" style=\"color:#b8801f\">○ No registrado — invítalo para que reclame su perfil</div>" : "") +
     (d.notas ? "<div class=\"row\">" + esc(d.notas) + "</div>" : "") +
     rutaInline(d) +
@@ -2505,6 +2524,7 @@ function openDoctorDlg(id) {
     dEmail.placeholder = verContacto ? "correo@ejemplo.com" : t("(privado)", "(private)"); dTel.placeholder = verContacto ? "+52 878 123 4567" : t("(privado)", "(private)");
     dNotas.value = d.notas || "";
     const f0 = (d.formacion && d.formacion[0]) || {}; dSede.value = f0.sede || ""; dIni.value = f0.inicio || ""; dFin.value = f0.fin || "";
+    dUni.value = d.universidad || "";
     dBusca.value = d.buscaEntrar || "";
   }
   dlgDoctor.showModal();
@@ -2521,7 +2541,7 @@ document.getElementById("formDoctor").addEventListener("submit", async (ev) => {
     creadoPor: prev ? prev.creadoPor : (state.session.currentUserId || null),
     rol: prev ? (prev.rol || "miembro") : "miembro",
     aceptoPrivacidad: prev ? prev.aceptoPrivacidad : null,
-    nombre: dNombre.value.trim(), esp: dEsp.value.trim(), sub: dSub.value.trim(), inst: normInst(dInst.value),
+    nombre: dNombre.value.trim(), esp: dEsp.value.trim(), sub: dSub.value.trim(), inst: normInst(dInst.value), universidad: normInst(dUni.value),
     ciudad: normCiudad(dCiudad.value), estado: normEstado(dEstado.value, dPais.value), pais: tituloCaso(dPais.value),
     lat: parseFloat(dLat.value), lng: parseFloat(dLng.value),
     email: dEmail.disabled && prev ? (prev.email || "") : dEmail.value.trim(),
@@ -2552,7 +2572,7 @@ document.getElementById("formDoctor").addEventListener("submit", async (ev) => {
     if (dup) { if (!confirm(t("Ya existe \"" + dup.nombre + "\". ¿Es OTRA persona con el mismo nombre?\n\nAceptar = registrarlo aparte\nCancelar = no duplicar", "\"" + dup.nombre + "\" already exists. Is this ANOTHER person with the same name?\n\nOK = register separately\nCancel = don't duplicate"))) return; }
   }
   // Campos editables en la nube (los privados solo cuando el formulario los permitió)
-  const row = { nombre: doc.nombre, esp: doc.esp, sub: doc.sub, inst: doc.inst, ciudad: doc.ciudad, estado: doc.estado, pais: doc.pais, lat: doc.lat, lng: doc.lng,
+  const row = { nombre: doc.nombre, esp: doc.esp, sub: doc.sub, inst: doc.inst, universidad: doc.universidad, ciudad: doc.ciudad, estado: doc.estado, pais: doc.pais, lat: doc.lat, lng: doc.lng,
     notas: doc.notas, formacion: doc.formacion, busca_entrar: doc.buscaEntrar };
   if (!dEmail.disabled) row.email = doc.email;
   if (!dTel.disabled) row.tel = doc.tel;
