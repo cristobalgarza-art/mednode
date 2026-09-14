@@ -910,7 +910,7 @@ const INST_CATALOGO = [
   ["Instituto Politécnico Nacional (IPN)", ["ipn", "instituto politecnico nacional", "escuela superior de medicina ipn", "esm ipn", "escuela superior de medicina", "encb ipn"]],
   ["Universidad Autónoma de Nuevo León (UANL)", ["uanl", "universidad autonoma de nuevo leon", "facultad de medicina uanl", "fac med uanl", "facultad de medicina de la uanl"]],
   ["Universidad de Monterrey (UDEM)", ["udem", "universidad de monterrey", "u de m"]],
-  ["Tecnológico de Monterrey (ITESM / TecSalud)", ["itesm", "tec de monterrey", "tecnologico de monterrey", "tec salud", "tecsalud", "tec", "escuela de medicina tec de monterrey", "escuela de medicina itesm", "tec de monterrey escuela de medicina", "instituto tecnologico y de estudios superiores de monterrey"]],
+  ["Tecnológico de Monterrey (ITESM)", ["itesm", "tec de monterrey", "tecnologico de monterrey", "tec salud", "tecsalud", "tec", "tec de monterrey itesm tecsalud", "tecnologico de monterrey itesm tecsalud", "tecnologico de monterrey itesm", "escuela de medicina tec de monterrey", "escuela de medicina itesm", "tec de monterrey escuela de medicina", "instituto tecnologico y de estudios superiores de monterrey"]],
   ["Universidad Autónoma de Coahuila (UAdeC)", ["uadec", "ua de c", "universidad autonoma de coahuila", "facultad de medicina uadec", "facultad de medicina unidad torreon", "facultad de medicina unidad saltillo"]],
   ["Universidad Autónoma de Tamaulipas (UAT)", ["uat", "universidad autonoma de tamaulipas", "facultad de medicina uat", "facultad de medicina de tampico", "facultad de medicina matamoros"]],
   ["Universidad Autónoma de San Luis Potosí (UASLP)", ["uaslp", "universidad autonoma de san luis potosi", "facultad de medicina uaslp"]],
@@ -1014,7 +1014,8 @@ const INST_CATALOGO = [
   ["Hospital Almater (Mexicali)", ["almater", "hospital almater"]],
   ["Hospital CIMA", ["cima", "hospital cima"]],
   ["Hospital San José de Hermosillo", ["hospital san jose de hermosillo", "san jose hermosillo"]],
-  ["Clínica de Especialistas (Piedras Negras)", ["clinica de especialistas", "clinica de especialistas piedras negras"]],
+  ["Clínica de Especialistas – Piedras Negras", ["clinica de especialistas", "clinica especialistas", "clinica de especialistas piedras negras", "clinica especialistas piedras negras", "clinica de especialistas de piedras negras"]],
+  ["Centro Médico ISSEMYM Ecatepec", ["cmi ecatepec", "cm issemym ecatepec", "cme issemym", "centro medico issemym ecatepec", "centro medico issemym de ecatepec", "centro medico ecatepec", "centro medico ecatepec issemym", "issemym ecatepec", "issemym centro medico ecatepec", "issemym hospital ecatepec", "hospital issemym ecatepec", "hospital ecatepec issemym"]],
   ["Shriners Hospital for Children México", ["shriners", "hospital shriners"]],
   ["Hospital Star Médica Infantil Privado", ["infantil privado", "hospital infantil privado"]],
   ["Hospital Médica Sur Lomas", ["medica sur lomas"]],
@@ -1026,9 +1027,11 @@ const INST_CATALOGO = [
 ];
 // Índice alias → nombre oficial (se construye una vez)
 const _instExacto = new Map(), _instParcial = [];
+// Clave de comparación: sin acentos, minúsculas, sin puntuación ni guiones sueltos ("Clínica X – Piedras Negras" = "clinica x piedras negras")
+function instKey(s) { return claveTxt(s).replace(/[.,()–—\/]/g, " ").replace(/\s-\s/g, " ").replace(/\s+/g, " ").trim(); }
 INST_CATALOGO.forEach(([canon, aliases]) => {
   aliases.concat([canon]).forEach((a) => {
-    const k = claveTxt(a).replace(/[.,()]/g, "").replace(/\s+/g, " ").trim();
+    const k = instKey(a);
     if (!k) return;
     if (!_instExacto.has(k)) _instExacto.set(k, canon);
     if (k.length >= 5) _instParcial.push([k, canon]);   // parciales solo con alias largos (evita "tec", "abc", "oca"…)
@@ -1039,26 +1042,30 @@ const INST_CADENAS = new Set(["Hospital Ángeles", "Christus Muguerza", "Star M�
 // Unidades IMSS escritas a mano: "HGZ 11 Piedras Negras" → "IMSS HGZ 11 Piedras Negras"
 const RE_IMSS_UNIDAD = /^(hgz|hgr|hgs|hgsz|hgsmf|hgzmf|umf|umae|hes|hgp|hgo|umaa|hp)\s*(?:no\.?\s*|n°\s*|#\s*)?\d+/i;
 function instCanon(s) {
-  const k = claveTxt(s).replace(/[.,()]/g, "").replace(/\s+/g, " ").trim();
+  const k = instKey(s);
   if (!k) return null;
   if (_instExacto.has(k)) return _instExacto.get(k);
   const kk = " " + k + " ";
   for (const [a, canon] of _instParcial) {
     if (!kk.includes(" " + a + " ")) continue;
     if (INST_CADENAS.has(canon)) {
-      // Cadenas/sistemas: conservar la sede ("Hospital Ángeles Valle Oriente", "ISSEMYM Centro Médico Ecatepec")
+      // Cadenas/sistemas: se corrige solo el nombre del sistema y se conserva el resto EN SU ORDEN
+      // ("hospital angeles valle oriente" → "Hospital Ángeles Valle Oriente"; "Centro Médico ISSEMYM Ecatepec" queda igual, como en el catálogo oficial)
       const original = String(s).replace(/\s+/g, " ").trim();
       const plano = sinAcentos(original).toLowerCase();          // misma longitud que original, sin acentos
       const idx = plano.search(new RegExp("(^|[^a-z0-9])" + a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z0-9]|$)"));
-      let resto = original;
-      if (idx >= 0) { const start = plano.indexOf(a, idx); resto = (original.slice(0, start) + " " + original.slice(start + a.length)); }
-      resto = resto.replace(/[\s,()./-]+/g, " ").trim();
-      return resto ? canon + " " + tituloCaso(resto) : canon;
+      if (idx < 0) return canon;
+      const start = plano.indexOf(a, idx);
+      const antes = original.slice(0, start).trim(), despues = original.slice(start + a.length).trim();
+      return [antes ? tituloCaso(antes) : "", canon, despues ? tituloCaso(despues) : ""].filter(Boolean).join(" ").replace(/\s+,/g, ",").replace(/\s+/g, " ").trim();
     }
     return canon;
   }
   return null;
 }
+// Institución compuesta ("Hospital Inglés / Clínica de Especialistas") → partes; el filtro reconoce cada una
+function instPartes(s) { s = String(s || "").trim(); if (!s) return []; if (_instExacto.has(instKey(s))) return [s]; return s.split(" / ").map((p) => p.trim()).filter(Boolean); }
+function tieneInst(d, inst) { const k = instKey(inst); return !!k && instPartes(d.inst).some((p) => instKey(p) === k); }
 /* ===== Búsqueda en vivo de unidades reales (tabla instituciones: 7,345 unidades CLUES + catálogo local) ===== */
 const _instCache = new Map();
 async function buscarInstituciones(q) {
@@ -1101,7 +1108,8 @@ function conectarBusquedaInst(inputId, listId) {
 ["obInst", "dInst", "obSede", "dSede"].forEach((id) => conectarBusquedaInst(id, "instList"));
 function normInst(s) {
   s = String(s || "").replace(/\s*\/\s*/g, " / ").replace(/\s+/g, " ").trim(); if (!s) return s;
-  if (s.includes(" / ")) return s.split(" / ").map((p) => instCanon(p) || tituloCaso(p)).join(" / ");
+  if (_instExacto.has(instKey(s))) return _instExacto.get(instKey(s));          // nombre completo conocido (aunque traiga "/")
+  if (s.includes(" / ")) { const vistos = new Set(); return s.split(" / ").map((p) => instCanon(p) || tituloCaso(p)).filter((p) => { const k = instKey(p); if (!k || vistos.has(k)) return false; vistos.add(k); return true; }).join(" / "); }
   if (RE_IMSS_UNIDAD.test(s)) return "IMSS " + tituloCaso(s).replace(/^(hgz|hgr|hgs|hgsz|hgsmf|hgzmf|umf|umae|hes|hgp|hgo|umaa|hp)\b/i, (m) => m.toUpperCase());
   return instCanon(s) || tituloCaso(s);
 }
@@ -1585,13 +1593,13 @@ function renderDirectory() {
   fillSelectKeep(espSel, [...new Set(state.doctors.map((d) => canonEsp(d.esp)))].sort((a, b) => espT(a).localeCompare(espT(b))), "Toda especialidad", espT);
   const lugares = unicosTxt(state.doctors.map((d) => d.estado || d.pais)).sort((a, b) => paisT(a).localeCompare(paisT(b)));
   fillSelectKeep(estSel, lugares, "Todo estado/país", paisT);
-  const q = (document.getElementById("dirSearch").value || "").toLowerCase().trim();
+  const q = claveTxt(document.getElementById("dirSearch").value || "");   // sin acentos: "clinica" encuentra "Clínica"
   const fe = espSel.value, fl = estSel.value;
   const list = state.doctors.filter((d) => {
     if (fe && canonEsp(d.esp) !== fe) return false;
     if (fl && claveTxt(d.estado) !== claveTxt(fl) && claveTxt(d.pais) !== claveTxt(fl)) return false;
     if (q) {
-      const hay = (d.nombre + " " + d.esp + " " + espT(d.esp) + " " + (d.sub || "") + " " + espT(d.sub) + " " + (d.inst || "") + " " + d.ciudad + " " + (d.estado || "") + " " + d.pais + " " + paisT(d.pais)).toLowerCase();
+      const hay = claveTxt(d.nombre + " " + d.esp + " " + espT(d.esp) + " " + (d.sub || "") + " " + espT(d.sub) + " " + (d.inst || "") + " " + (d.formacion || []).map((f) => f.sede).join(" ") + " " + d.ciudad + " " + (d.estado || "") + " " + d.pais + " " + paisT(d.pais));
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -1997,7 +2005,7 @@ function visibleDoctors() {
   if (selectedId && selectedId !== me) { const ch = pathTo(selectedId); if (ch) ch.forEach((s) => { ruta.add(s.from); ruta.add(s.to); }); }
   return state.doctors.filter((d) => {
     if (d.id === me || d.id === selectedId || ruta.has(d.id)) return true;
-    const passF = (!esp || canonEsp(d.esp) === esp) && (!pais || claveTxt(d.pais) === claveTxt(pais)) && (!inst || claveTxt(d.inst) === claveTxt(inst));
+    const passF = (!esp || canonEsp(d.esp) === esp) && (!pais || claveTxt(d.pais) === claveTxt(pais)) && (!inst || tieneInst(d, inst));
     if (!passF) return false;
     if (alcance === "todos") return true;
     if (alcance === "conectados") return degOf(d.id) > 0;
@@ -2246,13 +2254,14 @@ function applyFocus() {
   gNodes.selectAll("g.node").attr("opacity", (d) => nb.has(d.id) ? 1 : dimNode);
   { const _p = getPositions(); applyLinkFade(_p); labelPass(_p); }
 }
-function unicosTxt(arr) { const m = new Map(); arr.filter(Boolean).forEach((v) => { const k = claveTxt(v); if (!m.has(k)) m.set(k, v); }); return [...m.values()].sort((a, b) => a.localeCompare(b)); }
+function unicosTxt(arr, keyFn) { keyFn = keyFn || claveTxt; const m = new Map(); arr.filter(Boolean).forEach((v) => { const k = keyFn(v); if (!m.has(k)) m.set(k, v); }); return [...m.values()].sort((a, b) => a.localeCompare(b)); }
 function populateFilters() {
   fillSelect(fEsp, [...new Set(state.doctors.map((d) => canonEsp(d.esp)))].sort((a, b) => espT(a).localeCompare(espT(b))), "Todas", espT);
   fillSelect(fPais, [...new Set(state.doctors.map((d) => d.pais))].sort((a, b) => paisT(a).localeCompare(paisT(b))), "Todos", paisT);
-  fillSelect(fInst, unicosTxt(state.doctors.map((d) => d.inst)), "Todas");
+  // Una opción por hospital real: las instituciones compuestas ("A / B") se separan y se deduplican sin acentos ni puntuación
+  fillSelect(fInst, unicosTxt(state.doctors.flatMap((d) => instPartes(d.inst)), instKey), "Todas");
   const dl = (id, vals) => { const el = document.getElementById(id); if (el) el.innerHTML = vals.map((e) => "<option value=\"" + esc(e) + "\">").join(""); };
-  dl("instList", unicosTxt(state.doctors.map((d) => d.inst).concat(state.doctors.flatMap((d) => (d.formacion || []).map((f) => f.sede)))));
+  dl("instList", unicosTxt(state.doctors.flatMap((d) => instPartes(d.inst)).concat(state.doctors.flatMap((d) => (d.formacion || []).map((f) => f.sede))), instKey));
   dl("ciudadList", unicosTxt(state.doctors.map((d) => d.ciudad)));
   dl("estadoList", unicosTxt(ESTADOS_MX.concat(state.doctors.map((d) => d.estado))));
   fillEspDatalists();
