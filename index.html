@@ -155,6 +155,8 @@
   .obCard .tagline { color: #6b7280; font-size: 14px; margin-bottom: 22px; line-height: 1.5; }
   .obStep { display: none; }
   .obStep.active { display: block; }
+  .obSpin { width: 38px; height: 38px; margin: 0 auto; border-radius: 50%; border: 4px solid #e4e2f7; border-top-color: #5b50c7; animation: obgira 0.9s linear infinite; }
+  @keyframes obgira { to { transform: rotate(360deg); } }
   .obOption { border: 1px solid #e7e9ef; border-radius: 14px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
   @media (hover:hover) { .obOption:hover { border-color: #5b50c7; background: #f8f8fe; } }
   .obOption .t { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
@@ -285,6 +287,16 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
     <h2><svg width="26" height="26" viewBox="0 0 24 24"><path d="M8 16 L16 8 M9 18 L15 18" stroke="#b9b3e8" stroke-width="1.8" fill="none"/><circle cx="6" cy="18" r="3.4" fill="#5b50c7"/><circle cx="18" cy="6" r="3.4" fill="#1D9E75"/><circle cx="18" cy="18" r="2.6" fill="#D85A30"/></svg>MED<span>NODE</span></h2>
 
     <div id="obStepInd" style="font-size:12px;color:#8a919c;letter-spacing:.5px;margin:-2px 0 10px"></div>
+    <!-- Pantalla de espera: hay sesión guardada, solo estamos cargando (nunca mostrar el formulario de correo aquí) -->
+    <div class="obStep" id="ob-cargando" style="text-align:center;padding:18px 0 8px">
+      <div class="obSpin"></div>
+      <p id="obCargandoTxt" style="margin:14px 0 0;font-size:15px;color:#3a3f4d;font-weight:600">Entrando a MEDNODE…</p>
+      <p id="obCargandoSub" class="hint" style="margin-top:6px">Tu sesión está guardada; no necesitas escribir nada.</p>
+      <div id="obCargandoBtns" style="display:none;margin-top:14px">
+        <button class="btn primary" onclick="startCloud()">Reintentar</button>
+        <button class="btn" style="margin-left:8px" onclick="obShow('ob-email')">Entrar con mi correo</button>
+      </div>
+    </div>
     <!-- Step 0: correo (enlace mágico, sin contraseñas) -->
     <div class="obStep active" id="ob-email">
       <div id="obInviteBanner" style="display:none;background:#eef2ff;border:1px solid #c7d0f5;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:14px"></div>
@@ -2876,14 +2888,30 @@ function boot() {
 // ============ ARRANQUE EN LA NUBE ============
 // 1) ¿Hay sesión (enlace mágico)? 2) ¿Tiene perfil? → app. Si no → crear perfil (código / fundador).
 let _starting = false;
+// ¿Hay una sesión guardada en este navegador? (supabase-js la guarda como sb-<proyecto>-auth-token)
+function haySesionGuardada() { try { return Object.keys(localStorage).some((k) => /^sb-.*-auth-token$/.test(k)); } catch (e) { return false; } }
+function obCargando(txt, sub, botones) {
+  obShow("ob-cargando");
+  document.getElementById("obCargandoTxt").textContent = txt;
+  document.getElementById("obCargandoSub").textContent = sub || "";
+  document.getElementById("obCargandoBtns").style.display = botones ? "block" : "none";
+  const sp = document.querySelector("#ob-cargando .obSpin"); if (sp) sp.style.display = botones ? "none" : "block";
+}
 async function startCloud() {
   if (_starting) return;
   _starting = true;
   try {
-  onboard.classList.add("show"); obShow("ob-email");
-  const { data } = await sb.auth.getSession();
+  onboard.classList.add("show");
+  // Con sesión guardada NUNCA se enseña el formulario de correo mientras carga: la gente creía que tenía que volver a entrar.
+  const guardada = haySesionGuardada();
+  if (guardada) obCargando(t("Entrando a MEDNODE…", "Signing in to MEDNODE…"), t("Tu sesión está guardada; no necesitas escribir nada.", "Your session is saved; nothing to type.")); else obShow("ob-email");
+  const { data, error } = await sb.auth.getSession();
   authUser = data && data.session ? data.session.user : null;
-  if (!authUser) return;
+  if (!authUser) {
+    // Había sesión pero no se pudo renovar (sin internet o servidor caído): no pedir el correo, ofrecer reintentar
+    if (guardada && haySesionGuardada()) { obCargando(t("No pudimos conectar con MEDNODE.", "Couldn't reach MEDNODE."), t("Revisa tu internet y vuelve a intentar. Tu sesión sigue guardada.", "Check your internet and try again. Your session is still saved."), true); return; }
+    obShow("ob-email"); return;
+  }
   let tiene = false;
   // Justo después del enlace mágico el servidor puede rechazar el pase por 1-2 s de desfase de reloj ("JWT issued at future"): reintentar en silencio.
   for (let intento = 0; ; intento++) {
@@ -2891,8 +2919,7 @@ async function startCloud() {
     catch (e) {
       const transitorio = /issued at future|jwt|token/i.test((e && e.message) || "");
       if (transitorio && intento < 4) { await new Promise((r) => setTimeout(r, 2000)); continue; }
-      const m = document.getElementById("obLoginMsg");
-      m.style.color = "#b03434"; m.innerHTML = esc(friendlyErr(e)) + " <a onclick=\"startCloud()\" style=\"color:#5b50c7;text-decoration:underline;cursor:pointer\">" + t("Reintentar", "Retry") + "</a>";
+      obCargando(friendlyErr(e), t("Tu sesión sigue guardada; solo falló la carga.", "Your session is still saved; only the loading failed."), true);
       return;
     }
   }
