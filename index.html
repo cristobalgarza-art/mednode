@@ -361,7 +361,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
       <label class="obLabel">País</label>
       <input id="obPais" value="México">
       <label class="obLabel">¿Dónde hiciste tu especialidad? (para reencontrar a tu generación)</label>
-      <input id="obSede" placeholder="Ej. Hospital Universitario UANL">
+      <input id="obSede" list="instList" placeholder="Ej. Hospital Universitario UANL">
       <div class="twoCol">
         <div><label class="obLabel">Año de inicio</label><input id="obIni" type="number" placeholder="2008"></div>
         <div><label class="obLabel">Año de término</label><input id="obFin" type="number" placeholder="2013"></div>
@@ -511,7 +511,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
     <label>Busca entrar a (opcional)</label>
     <input id="dBusca" placeholder="Ej. Cirugía plástica">
     <label>Sede donde hizo la especialidad (opcional)</label>
-    <input id="dSede" placeholder="Hospital Universitario UANL">
+    <input id="dSede" list="instList" placeholder="Hospital Universitario UANL">
     <div class="twoCol">
       <div><label>Año inicio</label><input id="dIni" type="number" placeholder="2008"></div>
       <div><label>Año término</label><input id="dFin" type="number" placeholder="2013"></div>
@@ -1179,6 +1179,46 @@ function instCanon(s) {
   }
   return null;
 }
+/* ===== Búsqueda en vivo de unidades reales (tabla instituciones: 7,345 unidades CLUES + catálogo local) ===== */
+const _instCache = new Map();
+async function buscarInstituciones(q) {
+  const k = claveTxt(q).replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  if (k.length < 3) return [];
+  if (_instCache.has(k)) return _instCache.get(k);
+  const words = k.split(" ").filter((w) => w.length >= 2);
+  let out = [];
+  try {
+    const r1 = await sb.from("instituciones").select("nombre,ciudad,estado,institucion").ilike("busq", "%" + k + "%").limit(12);
+    out = r1.data || [];
+    if (out.length < 12 && words.length > 1) {
+      let qq = sb.from("instituciones").select("nombre,ciudad,estado,institucion");
+      words.forEach((w) => { qq = qq.ilike("busq", "%" + w + "%"); });
+      const r2 = await qq.limit(12);
+      (r2.data || []).forEach((x) => { if (!out.some((y) => y.nombre === x.nombre && y.ciudad === x.ciudad)) out.push(x); });
+    }
+  } catch (e) {}
+  // Catálogo local (universidades, sistemas) al frente si coincide
+  const loc = INST_CATALOGO.filter(([canon, al]) => claveTxt(canon).includes(k) || al.some((a) => claveTxt(a).includes(k) || k.includes(claveTxt(a)) && claveTxt(a).length >= 4)).slice(0, 5).map(([canon]) => ({ nombre: canon, ciudad: "", estado: "", institucion: "" }));
+  out = loc.concat(out.filter((x) => !loc.some((l) => l.nombre === x.nombre))).slice(0, 15);
+  _instCache.set(k, out);
+  return out;
+}
+let _instT = null;
+function conectarBusquedaInst(inputId, listId) {
+  const inp = document.getElementById(inputId), dl = document.getElementById(listId);
+  if (!inp || !dl) return;
+  inp.setAttribute("autocomplete", "off");
+  inp.addEventListener("input", () => {
+    clearTimeout(_instT);
+    const v = inp.value;
+    _instT = setTimeout(async () => {
+      const res = await buscarInstituciones(v);
+      if (inp.value !== v) return;
+      dl.innerHTML = res.map((x) => "<option value=\"" + esc(x.nombre) + "\">" + esc([x.ciudad, x.estado].filter(Boolean).join(", ")) + "</option>").join("");
+    }, 220);
+  });
+}
+["obInst", "dInst", "obSede", "dSede"].forEach((id) => conectarBusquedaInst(id, "instList"));
 function normInst(s) {
   s = String(s || "").replace(/\s*\/\s*/g, " / ").replace(/\s+/g, " ").trim(); if (!s) return s;
   if (s.includes(" / ")) return s.split(" / ").map((p) => instCanon(p) || tituloCaso(p)).join(" / ");
@@ -2331,7 +2371,7 @@ function populateFilters() {
   fillSelect(fPais, [...new Set(state.doctors.map((d) => d.pais))].sort((a, b) => paisT(a).localeCompare(paisT(b))), "Todos", paisT);
   fillSelect(fInst, unicosTxt(state.doctors.map((d) => d.inst)), "Todas");
   const dl = (id, vals) => { const el = document.getElementById(id); if (el) el.innerHTML = vals.map((e) => "<option value=\"" + esc(e) + "\">").join(""); };
-  dl("instList", unicosTxt(INST_CATALOGO.map((x) => x[0]).concat(state.doctors.map((d) => d.inst)).concat(state.doctors.flatMap((d) => (d.formacion || []).map((f) => f.sede)))));
+  dl("instList", unicosTxt(state.doctors.map((d) => d.inst).concat(state.doctors.flatMap((d) => (d.formacion || []).map((f) => f.sede)))));
   dl("ciudadList", unicosTxt(state.doctors.map((d) => d.ciudad)));
   dl("estadoList", unicosTxt(ESTADOS_MX.concat(state.doctors.map((d) => d.estado))));
   fillEspDatalists();
