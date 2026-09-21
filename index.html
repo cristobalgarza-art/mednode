@@ -155,6 +155,10 @@
   .obCard .tagline { color: #6b7280; font-size: 14px; margin-bottom: 22px; line-height: 1.5; }
   .obStep { display: none; }
   .obStep.active { display: block; }
+  #sugBox { position: absolute; left: 12px; bottom: 46px; width: 290px; max-width: calc(100% - 24px); background: #fff; border: 1px solid #ddd9f5; border-radius: 14px; box-shadow: 0 10px 30px rgba(27,30,43,.16); padding: 12px 14px; z-index: 17; font-size: 13.5px; }
+  #sugBox .sugT { font-size: 11px; font-weight: 700; color: #4a40ad; letter-spacing: .4px; text-transform: uppercase; margin-bottom: 4px; }
+  #sugBox .sugBtns { display: flex; gap: 8px; margin-top: 10px; }
+  #sugBox .sugBtns .btn { flex: 1; }
   .obSpin { width: 38px; height: 38px; margin: 0 auto; border-radius: 50%; border: 4px solid #e4e2f7; border-top-color: #5b50c7; animation: obgira 0.9s linear infinite; }
   @keyframes obgira { to { transform: rotate(360deg); } }
   .obOption { border: 1px solid #e7e9ef; border-radius: 14px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
@@ -295,6 +299,29 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
       <div id="obCargandoBtns" style="display:none;margin-top:14px">
         <button class="btn primary" onclick="startCloud()">Reintentar</button>
         <button class="btn" style="margin-left:8px" onclick="obShow('ob-email')">Entrar con mi correo</button>
+      </div>
+    </div>
+    <!-- Paso final: el árbol empieza hoy (maestro + compañeros de generación) -->
+    <div class="obStep" id="ob-arbol">
+      <div id="arForm">
+        <p class="tagline" style="margin-bottom:4px">Tu árbol empieza hoy</p>
+        <p class="hint" style="margin:0 0 12px">Escribe los nombres aunque todavía no estén en MEDNODE: quedan en tu mapa y luego los invitas con un toque.</p>
+        <label class="obLabel">¿Quién fue tu maestro en la residencia? (quien más te formó)</label>
+        <input id="arMaestro" placeholder="Dr. Nombre Apellido" autocomplete="off">
+        <label class="obLabel">¿Quiénes fueron tus compañeros de generación<span id="arSedeTxt"></span>?</label>
+        <input id="arCo1" placeholder="Compañero 1" autocomplete="off" style="margin-bottom:6px">
+        <input id="arCo2" placeholder="Compañero 2" autocomplete="off" style="margin-bottom:6px">
+        <input id="arCo3" placeholder="Compañero 3" autocomplete="off" style="margin-bottom:6px">
+        <div id="arMas"><input id="arCo4" placeholder="Compañero 4" autocomplete="off" style="margin-bottom:6px"><input id="arCo5" placeholder="Compañero 5" autocomplete="off"></div>
+        <div class="obMsg" id="arMsg"></div>
+        <button class="btn primary" id="arBtn" style="width:100%;margin-top:8px" onclick="arGuardar()">Guardar y ver mi árbol</button>
+        <button class="btn" style="width:100%;margin-top:8px" onclick="arCerrar()">Ahora no</button>
+      </div>
+      <div id="arListo" style="display:none">
+        <p class="tagline" style="margin-bottom:4px">Ya están en tu árbol</p>
+        <p class="hint" style="margin:0 0 12px">Invítalos para que reclamen su perfil y confirmen la relación (un toque cada uno).</p>
+        <div id="arLista"></div>
+        <button class="btn primary" style="width:100%;margin-top:12px" onclick="arCerrar()">Ver mi árbol</button>
       </div>
     </div>
     <!-- Step 0: correo (enlace mágico, sin contraseñas) -->
@@ -477,6 +504,7 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
             <div class="gTitle">Primeros pasos <button class="gClose" onclick="hideGuia()" title="Ocultar">✕</button></div>
             <div id="guiaSteps"></div>
           </div>
+          <div id="sugBox" style="display:none"></div>
           <div id="mapFoot"><div id="status"></div><div id="zoomHint">Rueda = zoom · Arrastrar = mover</div></div>
           <div id="tooltip"></div>
           <div id="panel"><button id="panelClose" onclick="closePanel()">✕</button><div id="panelBody"></div></div>
@@ -590,7 +618,24 @@ path.link.ruta { filter: drop-shadow(0 0 3px rgba(91,80,199,.95)) drop-shadow(0 
 
 <dialog id="dlgInvite">
   <h3>Invitar a un colega</h3>
-  <p class="dlgsub">MEDNODE crece por invitación: la confianza viene de la cadena de colegas. Manda el enlace por WhatsApp; el código ya va dentro, tu colega no tiene que escribir nada.</p>
+  <p class="dlgsub">Manda el enlace por WhatsApp; el código ya va dentro, tu colega no tiene que escribir nada.</p>
+  <div id="invRelWrap" style="background:#f3f2fb;border:1px solid #ddd9f5;border-radius:12px;padding:10px 12px;margin-bottom:10px">
+    <label style="margin-top:0">¿A quién invitas? (opcional, pero así su perfil ya nace conectado a ti)</label>
+    <input id="invNombre" placeholder="Ej. Dr. Jerónimo Pérez" autocomplete="off">
+    <label>¿Qué es de ti?</label>
+    <select id="invRel">
+      <option value="">Solo invitar (sin relación)</option>
+      <option value="coresidente">Fuimos compañeros de residencia</option>
+      <option value="maestro_mio">Fue mi maestro</option>
+      <option value="alumno_mio">Fue mi alumno</option>
+      <option value="rmayor_mio">Fue mi residente mayor (R+)</option>
+      <option value="rmenor_mio">Fue mi residente menor (R−)</option>
+      <option value="cirugia">Operamos juntos</option>
+      <option value="rotacion">Rotamos juntos</option>
+      <option value="amistad">Colega / amistad</option>
+    </select>
+    <p class="hint" style="margin:6px 0 0">Al entrar, solo tendrá que confirmar la relación con un toque.</p>
+  </div>
   <div class="codeBox" id="inviteCode">—</div>
   <p class="dlgsub" id="inviteHelp">El enlace sirve para una persona.</p>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
@@ -1492,11 +1537,47 @@ async function obCreateProfile() {
   if (uniV && r.data) { try { await sb.from("doctors").update({ universidad: uniV }).eq("id", r.data); } catch (e) {} }
   try { await cloudLoad(); } catch (e) { sbErr(e); return; }
   clearInvite();
-  onboard.classList.remove("show");
   boot();
+  // El registro NO termina en un mapa vacío: termina preguntando por el maestro y la generación
+  abrirArbolInicial();
   if (ubicAprox) setTimeout(() => alert(t("No encontramos la ciudad \"" + ciudad + "\" en el mapa; te ubicamos en el centro de " + pais + ". Puedes corregirlo en Mi perfil → Editar.", "We couldn't find the city \"" + ciudad + "\" on the map; we placed you at the center of " + pais + ". You can fix it in My profile → Edit.")), 400);
-  if (sugerencias(state.session.currentUserId).length) setTab("directorio");
   } finally { _creating = false; if (btnCrear) btnCrear.disabled = false; }
+}
+/* ===== "Tu árbol empieza hoy": maestro + compañeros de generación al terminar el registro (o después, desde Mi perfil) ===== */
+function abrirArbolInicial() {
+  const me = currentUser(); if (!me) return;
+  const f0 = (me.formacion && me.formacion[0]) || {};
+  document.getElementById("arSedeTxt").textContent = f0.sede ? t(" en " + f0.sede, " at " + f0.sede) : "";
+  ["arMaestro", "arCo1", "arCo2", "arCo3", "arCo4", "arCo5"].forEach((id) => { document.getElementById(id).value = ""; });
+  document.getElementById("arMsg").textContent = "";
+  document.getElementById("arForm").style.display = ""; document.getElementById("arListo").style.display = "none";
+  onboard.classList.add("show"); obShow("ob-arbol");
+}
+function arCerrar() { onboard.classList.remove("show"); try { refresh(); } catch (e) {} }
+let _arGuardando = false;
+async function arGuardar() {
+  if (_arGuardando) return;
+  const me = currentUser(); if (!me) { arCerrar(); return; }
+  const f0 = (me.formacion && me.formacion[0]) || {};
+  const maestro = document.getElementById("arMaestro").value.trim();
+  const cos = ["arCo1", "arCo2", "arCo3", "arCo4", "arCo5"].map((id) => document.getElementById(id).value.trim()).filter((v) => v.length >= 3);
+  if (maestro.length < 3 && !cos.length) { arCerrar(); return; }
+  _arGuardando = true;
+  const btn = document.getElementById("arBtn"), msg = document.getElementById("arMsg");
+  btn.disabled = true; msg.style.color = "#0f6e56"; msg.textContent = t("Guardando tu árbol…", "Saving your tree…");
+  const creados = [];
+  try {
+    const opts = { sede: f0.sede || "", inicio: f0.inicio || null, fin: f0.fin || null };
+    if (maestro.length >= 3) { const id = await crearNoRegistrado(maestro, { sede: f0.sede || "" }); if (id) { await relacionarConmigo(id, "maestro_mio", t("Mi maestro en la residencia", "My residency mentor"), true); creados.push({ id, rel: t("tu maestro", "your mentor") }); } }
+    for (const n of cos) { const id = await crearNoRegistrado(n, opts); if (id) { await relacionarConmigo(id, "coresidente", t("Misma generación en " + (f0.sede || "la residencia"), "Same class at " + (f0.sede || "residency")), true); creados.push({ id, rel: t("compañero de residencia", "co-resident") }); } }
+    try { await cloudLoad(); } catch (e) {}
+    renderGuia();
+  } finally { _arGuardando = false; btn.disabled = false; }
+  if (!creados.length) { msg.style.color = "#b03434"; msg.textContent = t("No se pudo guardar. Intenta de nuevo.", "Could not save. Try again."); return; }
+  document.getElementById("arLista").innerHTML = creados.map((c) => { const d = byId(c.id); const n = d ? d.nombre : "";
+    return "<div class=\"solRow\" style=\"display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #eee\"><div><b>" + esc(n) + "</b><div style=\"font-size:12px;color:#6b7280\">" + esc(c.rel) + (d && d.registrado !== false ? t(" · ya es miembro: le llegará la solicitud", " · already a member: they will get the request") : "") + "</div></div>" +
+      (d && d.registrado === false ? "<button class=\"btn small primary\" onclick=\"openInviteDlg('" + c.id + "')\">Invitar</button>" : "") + "</div>"; }).join("");
+  document.getElementById("arForm").style.display = "none"; document.getElementById("arListo").style.display = "";
 }
 // Mensajes de error entendibles (en vez del texto crudo de la base de datos)
 function friendlyErr(e) {
@@ -1556,6 +1637,47 @@ function sugerencias(meId) {
   out.sort((a, b) => b.score - a.score);
   return out;
 }
+/* ===== Árbol desde el minuto uno: crear perfil no registrado + relación conmigo en un paso ===== */
+// Relaciones en primera persona → (tipo, dirección). from/to según TIPOS (maestro: from=maestro; residencia: from=R+).
+const REL_MIA = {
+  maestro_mio: { tipo: "maestro", yoFrom: false, txt: "fue mi maestro" },
+  alumno_mio:  { tipo: "maestro", yoFrom: true,  txt: "fue mi alumno" },
+  rmayor_mio:  { tipo: "residencia", yoFrom: false, txt: "fue mi residente mayor (R+)" },
+  rmenor_mio:  { tipo: "residencia", yoFrom: true,  txt: "fue mi residente menor (R−)" },
+  coresidente: { tipo: "coresidente", yoFrom: true, txt: "fuimos compañeros de residencia" },
+  rotacion:    { tipo: "rotacion", yoFrom: true, txt: "rotamos juntos" },
+  cirugia:     { tipo: "cirugia", yoFrom: true, txt: "operamos juntos" },
+  amistad:     { tipo: "amistad", yoFrom: true, txt: "somos colegas" }
+};
+function buscarPorNombre(nombre) { const k = claveTxt(nombre).replace(/^dr\.?a?\s+/i, ""); return state.doctors.find((d) => claveTxt(d.nombre).replace(/^dr\.?a?\s+/i, "") === k) || null; }
+// Crea (o reutiliza) un perfil no registrado con ese nombre; hereda especialidad/ciudad de quien lo crea. Devuelve el id.
+async function crearNoRegistrado(nombre, opts) {
+  opts = opts || {};
+  const me = currentUser(); if (!me) return null;
+  nombre = tituloCaso(String(nombre || "").replace(/\s+/g, " ").trim()); if (nombre.length < 3) return null;
+  const ya = buscarPorNombre(nombre); if (ya) return ya.id;
+  // El id se genera aquí (RLS no deja leer la fila recién creada con RETURNING)
+  const id = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : null;
+  const row = { nombre, esp: opts.esp || me.esp || "", sub: "", inst: opts.inst || "", ciudad: opts.ciudad || me.ciudad || "", estado: opts.estado || me.estado || "", pais: opts.pais || me.pais || "México",
+    lat: me.lat, lng: me.lng, notas: "", formacion: opts.sede ? [{ sede: opts.sede, inicio: opts.inicio || null, fin: opts.fin || null }] : [], busca_entrar: "",
+    registrado: false, rol: "miembro", creado_por: me.id, invited_by: me.id };
+  if (id) row.id = id;
+  const r = await sb.from("doctors").insert(row);
+  if (r.error) { sbErr(r.error, t("No se pudo crear el perfil", "Could not create the profile")); return null; }
+  return id;
+}
+// Registra la relación entre yo y otro médico. Con no registrado queda confirmada (él la revisa al reclamar); con registrado, pendiente.
+async function relacionarConmigo(otroId, relKey, detalle, sinRefresh) {
+  const me = state.session.currentUserId, rel = REL_MIA[relKey];
+  if (!me || !otroId || !rel || otroId === me) return false;
+  if (state.conns.some((c) => (c.from === me && c.to === otroId) || (c.from === otroId && c.to === me))) return true;   // ya existe algo entre los dos
+  const o = byId(otroId), estado = (o && o.registrado === false) ? "confirmada" : "pendiente";
+  const from = rel.yoFrom ? me : otroId, to = rel.yoFrom ? otroId : me;
+  const r = await sb.from("connections").insert({ from_id: from, to_id: to, tipo: rel.tipo, detalle: detalle || "", estado, creada_por: me });
+  if (r.error) { sbErr(r.error); return false; }
+  if (!sinRefresh) await refresh();
+  return true;
+}
 // Inserta una conexión MÍA en la nube (el servidor rechaza cualquier otra) y recarga.
 async function cloudInsertConn(from, to, tipo, detalle, estado) {
   const r = await sb.from("connections").insert({ from_id: from, to_id: to, tipo, detalle: detalle || "", estado, creada_por: state.session.currentUserId });
@@ -1571,7 +1693,33 @@ async function connectSuggestion(id) {
   if (!(await cloudInsertConn(me, id, "coresidente", "Misma generación de formación", estado))) return;
   alert(estado === "pendiente" ? t("Solicitud enviada. Se volverá conexión cuando el otro médico la confirme.", "Request sent. It will become a connection once the other physician confirms it.") : t("Conexión registrada. Cuando ese médico reclame su perfil, la confirmará.", "Connection recorded. When that physician claims their profile, they will confirm it."));
 }
+/* ===== Tarjeta Sí/No en la pantalla principal: "¿Fue tu compañero en X?" ===== */
+function sugDescartados() { try { return new Set(JSON.parse(localStorage.getItem("mednode_sug_no") || "[]")); } catch (e) { return new Set(); } }
+function renderSugBox() {
+  const el = document.getElementById("sugBox"); if (!el) return;
+  const me = state.session.currentUserId;
+  const no = sugDescartados();
+  const list = me ? sugerencias(me).filter((s) => !no.has(s.doc.id) && s.doc.registrado !== false) : [];
+  if (!list.length) { el.style.display = "none"; return; }
+  const s = list[0], o = s.doc;
+  el.innerHTML = "<div class=\"sugT\">" + t("¿Lo conoces?", "Do you know them?") + (list.length > 1 ? " · " + list.length : "") + "</div>" +
+    "<div><b>" + esc(o.nombre) + "</b> " + t("hizo la especialidad en ", "did residency at ") + "<b>" + esc(s.sede) + "</b>" + ((s.ini > -9999 && s.fin < 9999) ? " (" + s.ini + "–" + s.fin + ")" : "") + t(", en tus años. ¿Fueron compañeros?", ", in your years. Were you classmates?") + "</div>" +
+    "<div class=\"sugBtns\"><button class=\"btn small primary\" onclick=\"sugSi('" + o.id + "')\">" + t("Sí, fuimos compañeros", "Yes, classmates") + "</button><button class=\"btn small\" onclick=\"sugNo('" + o.id + "')\">No</button></div>";
+  el.style.display = "block";
+}
+async function sugSi(id) {
+  const me = state.session.currentUserId; if (!me) return;
+  const ya = state.conns.some((c) => (c.from === me && c.to === id) || (c.from === id && c.to === me));
+  if (!ya) { const ok = await relacionarConmigo(id, "coresidente", t("Misma generación de formación", "Same training class")); if (!ok) return; }
+  renderSugBox();
+}
+function sugNo(id) {
+  const no = sugDescartados(); no.add(id);
+  try { localStorage.setItem("mednode_sug_no", JSON.stringify([...no])); } catch (e) {}
+  renderSugBox();
+}
 function renderSugerencias() {
+  renderSugBox();
   const el = document.getElementById("sugerencias"); if (!el) return;
   const sug = sugerencias(state.session.currentUserId);
   el.innerHTML = sug.length ?
@@ -1730,6 +1878,7 @@ function renderMyProfile() {
     "<div class=\"infoRow\"><div class=\"k\">" + t("Tus datos", "Your data") + "</div><div class=\"v\">" + t("Guardados en la nube de MEDNODE; puedes entrar desde cualquier dispositivo con tu correo.", "Stored in the MEDNODE cloud; you can sign in from any device with your email.") + "</div></div>" +
     "<div style=\"margin-top:22px;display:flex;gap:10px;flex-wrap:wrap\">" +
       "<button class=\"btn primary\" onclick=\"openDoctorDlg('" + d.id + "')\">Editar mi perfil</button>" +
+      "<button class=\"btn\" onclick=\"abrirArbolInicial()\">" + t("＋ Mi maestro y mi generación", "＋ My mentor and my class") + "</button>" +
       "<button class=\"btn\" onclick=\"openInviteDlg()\">＋ Invitar colega</button>" +
       "<button class=\"btn\" onclick=\"viewDoctor('" + d.id + "')\">Ver mi red en el mapa</button>" +
       "<button class=\"btn\" onclick=\"openMenu()\">Mi cuenta</button>" +
@@ -1764,7 +1913,43 @@ async function openInviteDlg(forDocId) {
     ? t("Este código es exclusivo para " + target.nombre + ": al usarlo, reclamará su perfil con todas sus conexiones.", "This code is exclusively for " + target.nombre + ": when used, they will claim their profile with all its connections.")
     : t("El enlace sirve para una persona: al abrirlo, entra con su correo y su perfil queda ligado a ti. Para invitar a otra persona, toca \"Siguiente colega\".", "The link is for one person: they open it, sign in with their email, and their profile is linked to you. To invite someone else, tap \"Next colleague\".");
   const bs = document.getElementById("btnSigInv"); if (bs) bs.style.display = (target && target.registrado === false) ? "none" : "";
+  // Nombre + relación solo cuando el código no está ya amarrado a un perfil
+  const rw = document.getElementById("invRelWrap"); if (rw) rw.style.display = (target && target.registrado === false) ? "none" : "";
+  const inN = document.getElementById("invNombre"), inR = document.getElementById("invRel"); if (inN) inN.value = ""; if (inR) inR.value = "";
   if (!dlgInvite.open) dlgInvite.showModal();
+}
+// Si el médico escribió a quién invita: crea su perfil no registrado, la relación conmigo y un código exclusivo para él.
+let _preparandoInv = false;
+async function prepararInvitacionConNombre() {
+  if (!inviteActual || inviteActual.target || _preparandoInv) return;
+  const inN = document.getElementById("invNombre"), inR = document.getElementById("invRel");
+  const nombre = inN ? inN.value.trim() : "", relKey = inR ? inR.value : "";
+  if (nombre.length < 3) return;
+  _preparandoInv = true;
+  try {
+    const me = state.session.currentUserId;
+    const existente = buscarPorNombre(nombre);
+    if (existente && existente.registrado !== false) {
+      // Ya es miembro: no necesita invitación, solo la relación (queda pendiente para que él confirme)
+      if (relKey) await relacionarConmigo(existente.id, relKey, t("Vía invitación MEDNODE", "Via MEDNODE invitation"));
+      alert(t(existente.nombre + " ya está en MEDNODE" + (relKey ? "; le mandé la relación para que la confirme." : "."), existente.nombre + " is already on MEDNODE" + (relKey ? "; the relation was sent for confirmation." : ".")));
+      return;
+    }
+    const id = existente ? existente.id : await crearNoRegistrado(nombre);
+    if (!id) return;
+    if (relKey) await relacionarConmigo(id, relKey, t("Vía invitación MEDNODE", "Via MEDNODE invitation"), true);
+    // Código exclusivo para ese perfil (al usarlo, lo reclama con la relación ya puesta)
+    const code = randomCode();
+    const r = await sb.from("invites").insert({ code, creada_por: me, para_doc: id });
+    if (r.error) { sbErr(r.error); return; }
+    try { await cloudLoad(); } catch (e) {}
+    const tg = byId(id) || { id, nombre, registrado: false };
+    inviteActual = { code, target: tg, rel: relKey };
+    document.getElementById("inviteCode").textContent = code;
+    document.getElementById("inviteHelp").textContent = t("Código exclusivo para " + tg.nombre + ": al entrar, confirmará la relación contigo con un toque.", "Exclusive code for " + tg.nombre + ": on entry they will confirm the relation with one tap.");
+    const rw = document.getElementById("invRelWrap"); if (rw) rw.style.display = "none";
+    renderGuia();
+  } finally { _preparandoInv = false; }
 }
 const APP_URL = window.location.origin + window.location.pathname; // dirección del sitio: se incluye en las invitaciones
 let inviteActual = null;
@@ -1772,9 +1957,11 @@ function inviteMessage() {
   const me = currentUser(), code = inviteActual ? inviteActual.code : "", tg = inviteActual ? inviteActual.target : null;
   const saludo = tg ? (lang === "en" ? "Hi " + tg.nombre + "," : "Hola " + tg.nombre + ",") : (lang === "en" ? "Hi," : "Hola,");
   const link = APP_URL + "?i=" + encodeURIComponent(code);
+  const rel = inviteActual && inviteActual.rel && REL_MIA[inviteActual.rel] ? REL_MIA[inviteActual.rel].txt : "";
+  const relTxt = rel ? (lang === "en" ? "\nI already added you to my tree (" + rel + "); you just confirm it when you get in." : "\nYa te puse en mi árbol (" + rel + "); solo lo confirmas al entrar.") : "";
   return lang === "en"
-    ? saludo + " I'm inviting you to MEDNODE, the invitation-only network for physicians (who trained whom, who works with whom).\nEnter here: " + link + "\n— " + (me ? me.nombre : "")
-    : saludo + " te invito a MEDNODE, la red de médicos por invitación (quién formó a quién, quién trabaja con quién).\nEntra aquí: " + link + "\n— " + (me ? me.nombre : "");
+    ? saludo + " I'm inviting you to MEDNODE, the invitation-only network for physicians (who trained whom, who works with whom)." + relTxt + "\nEnter here: " + link + "\n— " + (me ? me.nombre : "")
+    : saludo + " te invito a MEDNODE, la red de médicos por invitación (quién formó a quién, quién trabaja con quién)." + relTxt + "\nEntra aquí: " + link + "\n— " + (me ? me.nombre : "");
 }
 // Marca el código actual como compartido (en la nube y en memoria) para que no se repita con otra persona
 function marcarCompartida() {
@@ -1787,17 +1974,20 @@ function marcarCompartida() {
 // "Siguiente colega": el código actual queda apartado para quien ya lo recibió y se genera uno nuevo sin cerrar el diálogo
 async function siguienteInvitacion() {
   marcarCompartida();
-  const tgt = inviteActual && inviteActual.target ? inviteActual.target.id : undefined;
   const b = document.getElementById("btnSigInv"); if (b) b.disabled = true;
-  try { if (dlgInvite.open) dlgInvite.close(); await openInviteDlg(tgt); } finally { if (b) b.disabled = false; }
+  try { if (dlgInvite.open) dlgInvite.close(); await openInviteDlg(); } finally { if (b) b.disabled = false; }
 }
-function shareInvite(kind) {
+async function shareInvite(kind) {
   if (!inviteActual) return;
+  // La ventana se abre ANTES de esperar a la nube (si no, el navegador la bloquea como popup)
+  let w = null;
+  if (kind === "wa") { try { w = window.open("about:blank", "_blank"); } catch (e) {} }
+  await prepararInvitacionConNombre();
   marcarCompartida();
   const msg = inviteMessage();
   const subject = lang === "en" ? "Invitation to MEDNODE" : "Invitación a MEDNODE";
   try {
-    if (kind === "wa") window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+    if (kind === "wa") { const url = "https://wa.me/?text=" + encodeURIComponent(msg); if (w) w.location.href = url; else window.location.href = url; }
     else if (kind === "mail") window.location.href = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(msg);
     else if (kind === "share" && navigator.share) navigator.share({ title: subject, text: msg }).catch(() => {});
   } catch (e) {}
@@ -1809,7 +1999,8 @@ function openPriv() {
     : "<p><b>Quiénes somos.</b> MEDNODE es una red profesional de médicos por invitación. Responsable: el fundador de MEDNODE (contacto: cristobal.garza@gmail.com).</p><p><b>Qué recopilamos.</b> Tu nombre, especialidad, institución, ciudad, cédula profesional, correo y, si lo agregas, teléfono — solo lo que tú mismo capturas.</p><p><b>Tu correo y teléfono son privados.</b> Nunca se muestran a otros miembros. Quien quiera contactarte debe enviarte una solicitud indicando quién es y el motivo; solo si tú la aceptas verá tus datos, y puedes revocarlo cuando quieras.</p><p><b>Para qué.</b> Para crear tu perfil profesional y mostrar tus relaciones profesionales (formación, colaboraciones, recomendaciones) a otros médicos miembros.</p><p><b>Lo que nunca hacemos.</b> No vendemos ni compartimos tus datos con terceros ni con fines publicitarios sin tu consentimiento expreso. MEDNODE nunca almacena información de pacientes.</p><p><b>Tus derechos (ARCO).</b> Puedes ver, corregir o eliminar tu perfil en cualquier momento desde 'Mi perfil'. Las conexiones que te involucran requieren tu confirmación.</p><p style=\"color:#6b7280;font-size:12px\">Versión breve. El aviso completo se publicará en el sitio web.</p>";
   document.getElementById("dlgPriv").showModal();
 }
-function copyInvite() {
+async function copyInvite() {
+  await prepararInvitacionConNombre();
   const code = document.getElementById("inviteCode").textContent;
   const help = document.getElementById("inviteHelp");
   marcarCompartida();
@@ -2337,11 +2528,13 @@ function renderGuia() {
   const step = (done, txt, fn) => "<div class=\"gStep" + (done ? " done" : "") + "\" onclick=\"" + fn + "\"><span class=\"gChk\">" + (done ? "✓" : "○") + "</span><span>" + txt + "</span></div>";
   document.getElementById("guiaSteps").innerHTML =
     step(s1, "Pon dónde hiciste tu especialidad", "openDoctorDlg('" + me.id + "')") +
-    step(s2, "Agrega a tu maestro o a un colega", "openConnDlg('" + me.id + "')") +
+    step(s2, "Pon a tu maestro y a tu generación", "abrirArbolInicial()") +
     step(s3, "Invita a 3 colegas", "openInviteDlg()");
   el.style.display = "block";
 }
 function hideGuia() { state.session.hideGuia = true; save(); renderGuia(); }
+// La tarjeta de sugerencias se actualiza junto con la guía (misma cadencia: arranque, refresh, cambios)
+{ const _rg = renderGuia; renderGuia = function () { _rg(); try { renderSugBox(); } catch (e) {} }; }
 function updatePerfilBadge() {
   const me = state.session.currentUserId, el = document.getElementById("perfilBadge");
   if (!el) return;
@@ -2944,7 +3137,11 @@ async function startCloud() {
       return;
     }
   }
-  if (tiene) { onboard.classList.remove("show"); boot(); clearInvite(); }
+  if (tiene) {
+    onboard.classList.remove("show"); boot(); clearInvite();
+    // Botón del correo recordatorio: mednode.net/?arbol=1 → abre directo "mi maestro y mi generación"
+    try { if (new URLSearchParams(location.search).get("arbol")) { history.replaceState(null, "", location.pathname); setTimeout(abrirArbolInicial, 300); } } catch (e) {}
+  }
   else {
     const pend = inviteFromUrl();
     if (pend) { document.getElementById("obCodeInput").value = pend; const ok = await obCheckCode(); if (ok) return; }
