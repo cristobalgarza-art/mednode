@@ -1671,7 +1671,8 @@ async function relacionarConmigo(otroId, relKey, detalle, sinRefresh) {
   const me = state.session.currentUserId, rel = REL_MIA[relKey];
   if (!me || !otroId || !rel || otroId === me) return false;
   if (state.conns.some((c) => (c.from === me && c.to === otroId) || (c.from === otroId && c.to === me))) return true;   // ya existe algo entre los dos
-  const o = byId(otroId), estado = (o && o.registrado === false) ? "confirmada" : "pendiente";
+  // Si el perfil no está aún en memoria es porque lo acabo de crear (no registrado) → confirmada; él la revisa al reclamar
+  const o = byId(otroId), estado = (!o || o.registrado === false) ? "confirmada" : "pendiente";
   const from = rel.yoFrom ? me : otroId, to = rel.yoFrom ? otroId : me;
   const r = await sb.from("connections").insert({ from_id: from, to_id: to, tipo: rel.tipo, detalle: detalle || "", estado, creada_por: me });
   if (r.error) { sbErr(r.error); return false; }
